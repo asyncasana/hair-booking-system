@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 type ServiceBreakdown = {
   label: string;
@@ -45,9 +46,19 @@ export default function ServiceCard({
               <span className="text-base font-bold text-[#c83589]">
                 {item.price}
               </span>
-              <button className="rounded-full bg-[#c83589] px-5 py-2 text-white font-semibold hover:bg-[#ff77a4] transition text-xs ml-2">
+              <Link
+                href={{
+                  pathname: "/book",
+                  query: {
+                    service: title,
+                    option: item.label,
+                    price: item.price,
+                  },
+                }}
+                className="rounded-full bg-[#c83589] px-5 py-2 text-white font-semibold hover:bg-[#ff77a4] transition text-xs ml-2"
+              >
                 Book
-              </button>
+              </Link>
             </div>
           </div>
         ))}
