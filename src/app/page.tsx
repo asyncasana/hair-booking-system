@@ -12,7 +12,7 @@ export default function Home() {
           alt="Hero background image of flowers"
           fill
           className="object-cover brightness-60 opacity-80"
-		  draggable={false}
+          draggable={false}
           priority
         />
         <div className="relative z-10 flex flex-col items-center text-center">
@@ -23,7 +23,7 @@ export default function Home() {
             Book your next appointment with Iryna and feel your best.
           </p>
           <Link
-            href="/booking"
+            href="/services"
             className="rounded-full bg-[#c83589] px-8 py-4 text-lg font-semibold text-white shadow-lg transition hover:bg-[#ff77a4]"
           >
             Book Now
@@ -45,9 +45,12 @@ export default function Home() {
           <p className="mb-4 text-md text-[#c83589]">
             “Your hair is your crown—let me make it shine!”
           </p>
-          <button className="mt-4 flex rounded-full bg-[#c83589] px-6 py-3 font-semibold text-white transition hover:bg-[#ff77a4]">
+          <Link
+            href="/services"
+            className="mt-4 flex rounded-full bg-[#c83589] px-6 py-3 font-semibold text-white transition hover:bg-[#ff77a4]"
+          >
             Book Online
-          </button>
+          </Link>
         </div>
         <div className="md:w-1/2 flex justify-center">
           <Image
@@ -56,11 +59,11 @@ export default function Home() {
             width={320}
             height={320}
             className="rounded-2xl shadow-lg object-cover"
-			draggable={false}
+            draggable={false}
           />
         </div>
-		</section>
-     <ContactForm />
+      </section>
+      <ContactForm />
     </div>
   );
 }
