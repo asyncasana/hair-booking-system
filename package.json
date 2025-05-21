@@ -12,7 +12,7 @@
 		"db:migrate": "drizzle-kit migrate",
 		"db:push": "drizzle-kit push",
 		"db:studio": "drizzle-kit studio",
-		"dev": "next dev --turbo",
+		"dev": "next dev",
 		"preview": "next build && next start",
 		"start": "next start",
 		"typecheck": "tsc --noEmit"
@@ -40,7 +40,7 @@
 		"@types/node": "^20.14.10",
 		"@types/react": "^19.0.0",
 		"@types/react-dom": "^19.0.0",
-		"drizzle-kit": "^0.30.5",
+		"drizzle-kit": "^0.31.1",
 		"postcss": "^8.5.3",
 		"tailwindcss": "^4.0.15",
 		"typescript": "^5.8.2"

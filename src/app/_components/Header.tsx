@@ -1,10 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { use, useState } from "react";
+import { useState } from "react";
+import { useSession } from "next-auth/react";
+import AuthModal from "./AuthModal";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
+  const { data: session } = useSession();
+  const [showAuth, setShowAuth] = useState(false);
 
   return (
     <header className="flex items-center justify-between px-8 py-4 bg-[#c83589] text-white shadow-md relative">
@@ -23,26 +27,50 @@ export default function Header() {
         <Link href="#contact" className="hover:text-pink-300 transition">
           Contact Us
         </Link>
-        <Link
-          href="/account"
-          className="ml-4 rounded-full bg-white/10 p-2 hover:bg-white/20 transition"
-          title="Account"
-          aria-label="Account"
-        >
-          <svg
-            width={28}
-            height={28}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
+        {session ? (
+          <Link
+            href="/account"
+            className="ml-4 rounded-full bg-white/10 p-2 hover:bg-white/20 transition"
+            title="Account"
+            aria-label="Account"
           >
-            <circle cx={14} cy={10} r={4} />
-            <path d="M4 22c0-4 8-4 8-4s8 0 8 4" />
-          </svg>
-        </Link>
+            <svg
+              width={28}
+              height={28}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx={14} cy={10} r={4} />
+              <path d="M4 22c0-4 8-4 8-4s8 0 8 4" />
+            </svg>
+          </Link>
+        ) : (
+          <button
+            type="button"
+            className="ml-4 rounded-full bg-white/10 p-2 hover:bg-white/20 transition"
+            title="Account"
+            aria-label="Account"
+            onClick={() => setShowAuth(true)}
+          >
+            <svg
+              width={28}
+              height={28}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx={14} cy={10} r={4} />
+              <path d="M4 22c0-4 8-4 8-4s8 0 8 4" />
+            </svg>
+          </button>
+        )}
       </nav>
       {/* Hamburger for mobile */}
       <button
@@ -76,6 +104,7 @@ export default function Header() {
               className="px-6 py-3 hover:bg-pink-300/30 transition flex items-center gap-2"
               onClick={() => setOpen(false)}
             >
+              {/* Sparkle icon */}
               <svg
                 width={20}
                 height={20}
@@ -96,6 +125,7 @@ export default function Header() {
               className="px-6 py-3 hover:bg-pink-300/30 transition flex items-center gap-2"
               onClick={() => setOpen(false)}
             >
+              {/* Phone icon */}
               <svg
                 width={20}
                 height={20}
@@ -111,32 +141,62 @@ export default function Header() {
               </svg>
               Contact Us
             </Link>
-            <Link
-              href="/account"
-              className="px-6 py-3 flex items-center gap-2 hover:bg-pink-300/30 transition"
-              title="Account"
-              aria-label="Account"
-              onClick={() => setOpen(false)}
-            >
-              <svg
-                width={22}
-                height={22}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
+            {session ? (
+              <Link
+                href="/account"
+                className="px-6 py-3 flex items-center gap-2 hover:bg-pink-300/30 transition"
+                title="Account"
+                aria-label="Account"
+                onClick={() => setOpen(false)}
               >
-                <circle cx={11} cy={8} r={4} />
-                <path d="M3 20c0-4 8-4 8-4s8 0 8 4" />
-              </svg>
-              Account
-            </Link>
+                <svg
+                  width={22}
+                  height={22}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <circle cx={11} cy={8} r={4} />
+                  <path d="M3 20c0-4 8-4 8-4s8 0 8 4" />
+                </svg>
+                Account
+              </Link>
+            ) : (
+              <button
+                type="button"
+                className="px-6 py-3 flex items-center gap-2 hover:bg-pink-300/30 transition"
+                title="Account"
+                aria-label="Account"
+                onClick={() => {
+                  setOpen(false);
+                  setShowAuth(true);
+                }}
+              >
+                <svg
+                  width={22}
+                  height={22}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <circle cx={11} cy={8} r={4} />
+                  <path d="M3 20c0-4 8-4 8-4s8 0 8 4" />
+                </svg>
+                Account
+              </button>
+            )}
           </div>
         </>
       )}
+      <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />
     </header>
   );
 }
