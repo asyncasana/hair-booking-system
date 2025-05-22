@@ -6,8 +6,9 @@ import { useSession, signIn } from "next-auth/react";
 import { SERVICES } from "@/app/_data/services";
 import Calendar from "react-calendar";
 import BookingCalendar from "@/app/_components/BookingCalendar";
-
+import ContactForm from "./ContactForm";
 import "react-calendar/dist/Calendar.css";
+
 
 export default function BookingForm() {
   const router = useRouter();
@@ -70,6 +71,7 @@ export default function BookingForm() {
 
   // Show selected service if preselected, otherwise show dropdown
   return (
+    <>
     <div className="max-w-lg mx-auto pt-12 px-4">
       <h1 className="text-3xl font-bold mb-6 text-[#c83589] text-center">
         Book an Appointment
@@ -207,6 +209,8 @@ export default function BookingForm() {
         </button>
       )}
 
+      
+
       {/* Confirmation Modal */}
       {showConfirmation && (
         <div
@@ -232,5 +236,9 @@ export default function BookingForm() {
         </div>
       )}
     </div>
+    <div className="mt-25 w-full !max-w-none px-0">
+        <ContactForm />
+      </div>
+      </>
   );
 }

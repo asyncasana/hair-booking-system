@@ -35,7 +35,7 @@ export default function ContactForm() {
   return (
     <section
       id="contact"
-      className="relative bg-[#e984a9] py-12 px-6 overflow-hidden"
+      className="w-full relative bg-[#e984a9] py-12 px-6 overflow-hidden"
     >
       <Image
         src="/images/contact-bg.jpg"

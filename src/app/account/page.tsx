@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { useSession, signOut, signIn } from "next-auth/react";
 import ContactForm from "@/app/_components/ContactForm";
 import { useRouter } from "next/navigation";
+import LoadingOverlay from "@/app/_components/LoadingOverlay";
 
 export default function AccountPage() {
   const { data: session, status } = useSession();
@@ -30,19 +31,8 @@ export default function AccountPage() {
     }
   };
 
-  // If loading, show loading state
   if (status === "loading") {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <img
-          src="/images/hero-image.jpg"
-          alt="Background"
-          className="absolute inset-0 w-full h-full object-cover opacity-30"
-          draggable={false}
-        />
-        <div className="text-[#c83589] text-xl font-semibold">Loading...</div>
-      </div>
-    );
+    return <LoadingOverlay />;
   }
 
   // If user is not logged in, show login prompt
