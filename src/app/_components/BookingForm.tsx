@@ -3,13 +3,11 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession, signIn } from "next-auth/react";
+import { SERVICES } from "@/app/_data/services";
+import Calendar from "react-calendar";
+import BookingCalendar from "@/app/_components/BookingCalendar";
 
-const SERVICES = [
-  { id: "haircut", name: "Haircut", price: "20" },
-  { id: "color", name: "Hair Coloring", price: "20" },
-  { id: "styling", name: "Styling", price: "20" },
-  { id: "highlights", name: "Highlights", price: "20" },
-];
+import "react-calendar/dist/Calendar.css";
 
 export default function BookingForm() {
   const router = useRouter();
@@ -23,7 +21,34 @@ export default function BookingForm() {
   const [selectedService, setSelectedService] = useState(preselectedService);
   const [selectedOption, setSelectedOption] = useState(preselectedOption);
   const [selectedPrice, setSelectedPrice] = useState(preselectedPrice);
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedTime, setSelectedTime] = useState("");
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // Handler for booking submission
+  const handleConfirmBooking = async () => {
+    // Prepare booking data
+    const bookingData = {
+      service: selectedService,
+      option: selectedOption,
+      price: selectedPrice,
+      date: selectedDate,
+      time: selectedTime,
+      user: session?.user?.email, // or whatever user info you want
+    };
+    try {
+      // TODO: Send bookingData to your API/database here
+      // await fetch("/api/bookings", { method: "POST", body: JSON.stringify(bookingData) });
+
+      // For now, just log it and show confirmation
+      console.log("Booking submitted:", bookingData);
+      setShowConfirmation(true);
+    } catch (error) {
+      setShowError(true);
+    }
+  };
 
   // If not logged in
   if (!session) {
@@ -51,31 +76,7 @@ export default function BookingForm() {
       </h1>
 
       {/* Service selection */}
-      {selectedService ? (
-        <div className="mb-6">
-          <label className="block mb-2 font-semibold text-gray-700">
-            Selected service:
-          </label>
-          <div className="flex items-center gap-4">
-            <span className="text-[#c83589] font-semibold">
-              {SERVICES.find((s) => s.id === selectedService)?.name ||
-                selectedService}
-            </span>
-            <button
-              className="text-xs underline text-gray-500 hover:text-[#c83589] transition"
-              onClick={() => {
-                setSelectedService("");
-                setSelectedOption("");
-                setSelectedPrice("");
-                router.replace("/book");
-              }}
-              type="button"
-            >
-              Change
-            </button>
-          </div>
-        </div>
-      ) : (
+      {!selectedService && (
         <div className="mb-6">
           <label className="block mb-2 font-semibold text-gray-700">
             Select a service:
@@ -83,50 +84,152 @@ export default function BookingForm() {
           <select
             className="w-full border rounded px-3 py-2"
             value={selectedService}
-            onChange={(e) => setSelectedService(e.target.value)}
+            onChange={(e) => {
+              setSelectedService(e.target.value);
+              setSelectedOption("");
+              setSelectedPrice("");
+            }}
           >
             <option value="">-- Choose a service --</option>
             {SERVICES.map((service) => (
               <option key={service.id} value={service.id}>
-                {service.name}
+                {service.title}
               </option>
             ))}
           </select>
         </div>
       )}
 
-      {/* Option and price display */}
-      {selectedOption && (
-        <div className="mb-4">
-          <div className="font-semibold text-gray-700">Option:</div>
-          <div className="text-[#c83589]">{selectedOption}</div>
-        </div>
-      )}
-      {selectedPrice && (
-        <div className="mb-4">
-          <div className="font-semibold text-gray-700">Price:</div>
-          <div className="text-[#c83589]">{selectedPrice}</div>
+      {/* Option selection (only if service is selected and option is not) */}
+      {selectedService &&
+        !selectedOption &&
+        SERVICES.find((s) => s.id === selectedService)?.breakdown && (
+          <div className="mb-6">
+            <label className="block mb-2 font-semibold text-gray-700">
+              Select an option:
+            </label>
+            <select
+              className="w-full border rounded px-3 py-2"
+              value={selectedOption}
+              onChange={(e) => {
+                setSelectedOption(e.target.value);
+                // Set price automatically when option is selected
+                const service = SERVICES.find((s) => s.id === selectedService);
+                const option = service?.breakdown.find(
+                  (o) => o.label === e.target.value
+                );
+                setSelectedPrice(option?.price || "");
+              }}
+            >
+              <option value="">-- Choose an option --</option>
+              {SERVICES.find((s) => s.id === selectedService)?.breakdown.map(
+                (option) => (
+                  <option key={option.label} value={option.label}>
+                    {option.label}
+                  </option>
+                )
+              )}
+            </select>
+          </div>
+        )}
+
+      {/* Show option and price summary after option is picked */}
+      {selectedService && (
+        <div className="mb-4 flex flex-col items-center text-center">
+          <div>
+            <div className="font-semibold text-gray-700">Service:</div>
+            <div className="mb-2 text-[#c83589] text-lg font-semibold">
+              {SERVICES.find((s) => s.id === selectedService)?.title}
+            </div>
+            {selectedOption && (
+              <>
+                <div className="font-semibold text-gray-700">Option:</div>
+                <div className="mb-2 text-[#c83589]">{selectedOption}</div>
+              </>
+            )}
+            {selectedOption && (
+              <>
+                <div className="font-semibold text-gray-700">Price:</div>
+                <div className="mb-2 text-[#c83589]">{selectedPrice}</div>
+              </>
+            )}
+          </div>
+          <button
+            className="mt-2 mb-4 text-s underline text-gray-500 hover:text-[#c83589] transition"
+            onClick={() => {
+              setSelectedService("");
+              setSelectedOption("");
+              setSelectedPrice("");
+              router.replace("/book");
+            }}
+            type="button"
+          >
+            Edit
+          </button>
         </div>
       )}
 
-      {/* Calendar placeholder */}
+      {/* Calendar */}
       {selectedService && (
         <div className="mb-6">
           <label className="block mb-2 font-semibold text-gray-700">
-            Choose a date and time:
+            Choose a date:
           </label>
-          <div className="border rounded px-3 py-8 text-center text-gray-400">
-            {/* Replace this with a real calendar/slots component */}
-            [Calendar with available slots goes here]
-          </div>
+          <BookingCalendar
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
+            selectedTime={selectedTime}
+            setSelectedTime={setSelectedTime}
+          />
+          {selectedDate && (
+            <div className="mt-4 text-[#c83589] font-semibold">
+              Selected date:{" "}
+              {selectedDate instanceof Date
+                ? selectedDate.toLocaleDateString()
+                : String(selectedDate)}
+              {selectedTime && (
+                <div className="mb-2 text-[#c83589]">Time: {selectedTime}</div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
-      {/* Confirm button placeholder */}
+      {/* Confirm button */}
       {selectedService && selectedDate && (
-        <button className="w-full bg-[#c83589] text-white rounded py-2 font-semibold hover:bg-[#ff77a4] transition">
-          Confirm Booking
+        <button
+          className="mb-6 w-full bg-[#c83589] text-white rounded py-2 font-semibold hover:bg-[#ff77a4] transition disabled:bg-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed"
+          disabled={loading || !selectedTime}
+          onClick={handleConfirmBooking}
+          type="button"
+        >
+          {loading ? "Booking..." : "Confirm Booking"}
         </button>
+      )}
+
+      {/* Confirmation Modal */}
+      {showConfirmation && (
+        <div
+          className="fixed inset-0 flex items-center justify-center bg-[#ff77a4] bg-opacity-40 z-50"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="bg-white rounded-lg p-8 shadow-lg text-center">
+            <h2 className="text-2xl font-bold mb-4 text-[#c83589]">
+              Booking Confirmed!
+            </h2>
+            <p className="mb-4">Your appointment has been booked.</p>
+            <button
+              className="bg-[#c83589] text-white rounded px-4 py-2 font-semibold hover:bg-[#ff77a4]"
+              onClick={() => {
+                setShowConfirmation(false);
+                router.push("/account");
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

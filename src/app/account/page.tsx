@@ -3,9 +3,10 @@
 import { useState, useRef } from "react";
 import { useSession, signOut, signIn } from "next-auth/react";
 import ContactForm from "@/app/_components/ContactForm";
+import { useRouter } from "next/navigation";
 
 export default function AccountPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
   // State for uploaded image and edit mode
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
@@ -17,6 +18,7 @@ export default function AccountPage() {
   const [phone, setPhone] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const router = useRouter();
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -27,6 +29,21 @@ export default function AccountPage() {
       // TODO: Upload to DB here
     }
   };
+
+  // If loading, show loading state
+  if (status === "loading") {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <img
+          src="/images/hero-image.jpg"
+          alt="Background"
+          className="absolute inset-0 w-full h-full object-cover opacity-30"
+          draggable={false}
+        />
+        <div className="text-[#c83589] text-xl font-semibold">Loading...</div>
+      </div>
+    );
+  }
 
   // If user is not logged in, show login prompt
   if (!session) {
@@ -130,8 +147,8 @@ export default function AccountPage() {
               Manage Account
             </button>
             <button
-              className="bg-gray-300 text-gray-600 rounded px-4 py-2 font-semibold cursor-not-allowed"
-              disabled
+              className="bg-[#c83589] text-white rounded px-4 py-2 font-semibold hover:bg-[#ff77a4]"
+              onClick={() => router.push("/account/bookings")}
             >
               Manage Bookings
             </button>
