@@ -14,8 +14,10 @@ export const services = createTable("service", (d) => ({
     description: d.varchar({ length: 255 }),
     price: d.integer().notNull(), // price in cents or pounds
     duration: d.integer().notNull(), // in minutes
-    isActive: d.boolean().default(true),
-	isAddon: d.boolean().default(false),
+    is_active: d.boolean().default(true),
+	is_addon: d.boolean().default(false),
+	image: d.varchar({ length: 255 }),
+	category: d.varchar({ length: 100 }),
 }));
 
 export const servicesRelations = relations(services, ({ many }) => ({

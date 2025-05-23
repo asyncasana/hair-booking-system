@@ -1,23 +1,22 @@
 import Image from "next/image";
 import Link from "next/link";
 
-type ServiceBreakdown = {
-  label: string;
-  price: string;
-};
-
 type ServiceCardProps = {
+  id: number;
   image: string;
   title: string;
   description: string;
-  breakdown: ServiceBreakdown[];
+  price?: number;
+  category?: string;
 };
 
 export default function ServiceCard({
+  id,
   image,
   title,
   description,
-  breakdown,
+  price,
+  category,
 }: ServiceCardProps) {
   return (
     <div className="rounded-xl shadow-lg bg-[#fbeaf3] p-0 flex flex-col items-center overflow-hidden relative">
@@ -37,31 +36,21 @@ export default function ServiceCard({
           <p className="text-white mb-2 text-sm">{description}</p>
         </div>
       </div>
-      {/* Price rows */}
-      <div className="flex flex-col gap-2 w-full px-4 py-4 bg-[#fbeaf3] z-10 relative">
-        {breakdown.map((item, idx) => (
-          <div key={idx} className="flex items-center justify-between w-full">
-            <span className="text-sm">{item.label}</span>
-            <div className="flex items-center gap-2">
-              <span className="text-base font-bold text-[#c83589]">
-                {item.price}
-              </span>
-              <Link
-                href={{
-                  pathname: "/book",
-                  query: {
-                    service: title,
-                    option: item.label,
-                    price: item.price,
-                  },
-                }}
-                className="rounded-full bg-[#c83589] px-5 py-2 text-white font-semibold hover:bg-[#ff77a4] transition text-xs ml-2"
-              >
-                Book
-              </Link>
-            </div>
-          </div>
-        ))}
+      {/* Price and Book button */}
+      <div className="flex flex-col items-center w-full px-4 py-4 bg-[#fbeaf3] z-10 relative">
+        <div className="text-xs text-[#c83589] mb-1">{category}</div>
+        <span className="text-base font-bold text-[#c83589] mb-2">
+          £{price ?? "—"}
+        </span>
+        <Link
+          href={{
+            pathname: "/book",
+            query: { service: id },
+          }}
+          className="rounded-full bg-[#c83589] px-5 py-2 text-white font-semibold hover:bg-[#ff77a4] transition text-xs"
+        >
+          Book
+        </Link>
       </div>
     </div>
   );

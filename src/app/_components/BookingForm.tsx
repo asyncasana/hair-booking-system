@@ -1,19 +1,26 @@
 "use client";
 
 import { useState } from "react";
+import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession, signIn } from "next-auth/react";
-import { SERVICES } from "@/app/_data/services";
 import Calendar from "react-calendar";
 import BookingCalendar from "@/app/_components/BookingCalendar";
 import ContactForm from "./ContactForm";
 import "react-calendar/dist/Calendar.css";
 
-
 export default function BookingForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session } = useSession();
+  const [services, setServices] = useState<any[]>([]);
+
+  // Fetch services from your API route
+  useEffect(() => {
+    fetch("/api/services")
+      .then((res) => res.json())
+      .then(setServices);
+  }, []);
 
   const preselectedService = searchParams.get("service") || "";
   const preselectedOption = searchParams.get("option") || "";
@@ -30,25 +37,45 @@ export default function BookingForm() {
 
   // Handler for booking submission
   const handleConfirmBooking = async () => {
-    // Prepare booking data
+    let startTime: Date | null = null;
+    if (selectedDate && selectedTime) {
+      const timeParts = selectedTime.split(" ");
+      if (timeParts.length === 2) {
+        const [time, modifier] = timeParts;
+        if (time) {
+          const timeSplit = time.split(":");
+          if (timeSplit.length === 2) {
+            let hours = Number(timeSplit[0]);
+            let minutes = Number(timeSplit[1]);
+            if (!isNaN(hours) && !isNaN(minutes)) {
+              if (modifier === "PM" && hours < 12) hours += 12;
+              if (modifier === "AM" && hours === 12) hours = 0;
+              const date = new Date(selectedDate);
+              date.setHours(hours, minutes, 0, 0);
+              startTime = date;
+            }
+          }
+        }
+      }
+    }
+
     const bookingData = {
       service: selectedService,
-      option: selectedOption,
-      price: selectedPrice,
-      date: selectedDate,
-      time: selectedTime,
-      user: session?.user?.email, // or whatever user info you want
+      startTime: startTime ? startTime.toISOString() : null,
+      user: session?.user?.email,
     };
-    try {
-      // TODO: Send bookingData to your API/database here
-      // await fetch("/api/bookings", { method: "POST", body: JSON.stringify(bookingData) });
 
-      // For now, just log it and show confirmation
-      console.log("Booking submitted:", bookingData);
+    try {
+      await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bookingData),
+      });
       setShowConfirmation(true);
     } catch (error) {
       setShowError(true);
     }
+    console.log("Submitting booking", bookingData);
   };
 
   // If not logged in
@@ -72,173 +99,139 @@ export default function BookingForm() {
   // Show selected service if preselected, otherwise show dropdown
   return (
     <>
-    <div className="max-w-lg mx-auto pt-12 px-4">
-      <h1 className="text-3xl font-bold mb-6 text-[#c83589] text-center">
-        Book an Appointment
-      </h1>
+      <div className="max-w-lg mx-auto pt-12 px-4">
+        <h1 className="text-3xl font-bold mb-6 text-[#c83589] text-center">
+          Book an Appointment
+        </h1>
 
-      {/* Service selection */}
-      {!selectedService && (
-        <div className="mb-6">
-          <label className="block mb-2 font-semibold text-gray-700">
-            Select a service:
-          </label>
-          <select
-            className="w-full border rounded px-3 py-2"
-            value={selectedService}
-            onChange={(e) => {
-              setSelectedService(e.target.value);
-              setSelectedOption("");
-              setSelectedPrice("");
-            }}
-          >
-            <option value="">-- Choose a service --</option>
-            {SERVICES.map((service) => (
-              <option key={service.id} value={service.id}>
-                {service.title}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      {/* Option selection (only if service is selected and option is not) */}
-      {selectedService &&
-        !selectedOption &&
-        SERVICES.find((s) => s.id === selectedService)?.breakdown && (
+        {/* Service selection */}
+        {!selectedService && (
           <div className="mb-6">
             <label className="block mb-2 font-semibold text-gray-700">
-              Select an option:
+              Select a service:
             </label>
             <select
               className="w-full border rounded px-3 py-2"
-              value={selectedOption}
+              value={selectedService}
               onChange={(e) => {
-                setSelectedOption(e.target.value);
-                // Set price automatically when option is selected
-                const service = SERVICES.find((s) => s.id === selectedService);
-                const option = service?.breakdown.find(
-                  (o) => o.label === e.target.value
-                );
-                setSelectedPrice(option?.price || "");
+                setSelectedService(e.target.value);
+                setSelectedOption("");
+                setSelectedPrice("");
               }}
             >
-              <option value="">-- Choose an option --</option>
-              {SERVICES.find((s) => s.id === selectedService)?.breakdown.map(
-                (option) => (
-                  <option key={option.label} value={option.label}>
-                    {option.label}
-                  </option>
-                )
-              )}
+              <option value="">-- Choose a service --</option>
+              {services.map((service) => (
+                <option key={service.id} value={service.id}>
+                  {service.name} -- £{service.price}
+                </option>
+              ))}
             </select>
           </div>
         )}
 
-      {/* Show option and price summary after option is picked */}
-      {selectedService && (
-        <div className="mb-4 flex flex-col items-center text-center">
-          <div>
-            <div className="font-semibold text-gray-700">Service:</div>
-            <div className="mb-2 text-[#c83589] text-lg font-semibold">
-              {SERVICES.find((s) => s.id === selectedService)?.title}
+        {/* Show option and price summary after option is picked */}
+        {selectedService && (
+          <div className="mb-4 flex flex-col items-center text-center">
+            <div>
+              <div className="font-semibold text-gray-700">Service:</div>
+              <div className="mb-2 text-[#c83589] text-lg font-semibold">
+                {
+                  services.find((s) => String(s.id) === String(selectedService))
+                    ?.name
+                }
+              </div>
+              <div className="font-semibold text-gray-700">Price:</div>
+              <div className="mb-2 text-[#c83589]">
+                £
+                {
+                  services.find((s) => String(s.id) === String(selectedService))
+                    ?.price
+                }
+              </div>
             </div>
-            {selectedOption && (
-              <>
-                <div className="font-semibold text-gray-700">Option:</div>
-                <div className="mb-2 text-[#c83589]">{selectedOption}</div>
-              </>
-            )}
-            {selectedOption && (
-              <>
-                <div className="font-semibold text-gray-700">Price:</div>
-                <div className="mb-2 text-[#c83589]">{selectedPrice}</div>
-              </>
-            )}
-          </div>
-          <button
-            className="mt-2 mb-4 text-s underline text-gray-500 hover:text-[#c83589] transition"
-            onClick={() => {
-              setSelectedService("");
-              setSelectedOption("");
-              setSelectedPrice("");
-              router.replace("/book");
-            }}
-            type="button"
-          >
-            Edit
-          </button>
-        </div>
-      )}
-
-      {/* Calendar */}
-      {selectedService && (
-        <div className="mb-6">
-          <label className="block mb-2 font-semibold text-gray-700">
-            Choose a date:
-          </label>
-          <BookingCalendar
-            selectedDate={selectedDate}
-            setSelectedDate={setSelectedDate}
-            selectedTime={selectedTime}
-            setSelectedTime={setSelectedTime}
-          />
-          {selectedDate && (
-            <div className="mt-4 text-[#c83589] font-semibold">
-              Selected date:{" "}
-              {selectedDate instanceof Date
-                ? selectedDate.toLocaleDateString()
-                : String(selectedDate)}
-              {selectedTime && (
-                <div className="mb-2 text-[#c83589]">Time: {selectedTime}</div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Confirm button */}
-      {selectedService && selectedDate && (
-        <button
-          className="mb-6 w-full bg-[#c83589] text-white rounded py-2 font-semibold hover:bg-[#ff77a4] transition disabled:bg-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed"
-          disabled={loading || !selectedTime}
-          onClick={handleConfirmBooking}
-          type="button"
-        >
-          {loading ? "Booking..." : "Confirm Booking"}
-        </button>
-      )}
-
-      
-
-      {/* Confirmation Modal */}
-      {showConfirmation && (
-        <div
-          className="fixed inset-0 flex items-center justify-center bg-[#ff77a4] bg-opacity-40 z-50"
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="bg-white rounded-lg p-8 shadow-lg text-center">
-            <h2 className="text-2xl font-bold mb-4 text-[#c83589]">
-              Booking Confirmed!
-            </h2>
-            <p className="mb-4">Your appointment has been booked.</p>
             <button
-              className="bg-[#c83589] text-white rounded px-4 py-2 font-semibold hover:bg-[#ff77a4]"
+              className="mt-2 mb-4 text-s underline text-gray-500 hover:text-[#c83589] transition"
               onClick={() => {
-                setShowConfirmation(false);
-                router.push("/account");
+                setSelectedService("");
+                setSelectedOption("");
+                setSelectedPrice("");
+                router.replace("/book");
               }}
+              type="button"
             >
-              Close
+              Edit
             </button>
           </div>
-        </div>
-      )}
-    </div>
-    <div className="mt-25 w-full !max-w-none px-0">
+        )}
+
+        {/* Calendar */}
+        {selectedService && (
+          <div className="mb-6">
+            <label className="block mb-2 font-semibold text-gray-700">
+              Choose a date:
+            </label>
+            <BookingCalendar
+              selectedDate={selectedDate}
+              setSelectedDate={setSelectedDate}
+              selectedTime={selectedTime}
+              setSelectedTime={setSelectedTime}
+            />
+            {selectedDate && (
+              <div className="mt-4 text-[#c83589] font-semibold">
+                Selected date:{" "}
+                {selectedDate instanceof Date
+                  ? selectedDate.toLocaleDateString()
+                  : String(selectedDate)}
+                {selectedTime && (
+                  <div className="mb-2 text-[#c83589]">
+                    Time: {selectedTime}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Confirm button */}
+        {selectedService && selectedDate && (
+          <button
+            className="mb-6 w-full bg-[#c83589] text-white rounded py-2 font-semibold hover:bg-[#ff77a4] transition disabled:bg-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed"
+            disabled={loading || !selectedTime}
+            onClick={handleConfirmBooking}
+            type="button"
+          >
+            {loading ? "Booking..." : "Confirm Booking"}
+          </button>
+        )}
+
+        {/* Confirmation Modal */}
+        {showConfirmation && (
+          <div
+            className="fixed inset-0 flex items-center justify-center bg-[#ff77a4] bg-opacity-40 z-50"
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="bg-white rounded-lg p-8 shadow-lg text-center">
+              <h2 className="text-2xl font-bold mb-4 text-[#c83589]">
+                Booking Confirmed!
+              </h2>
+              <p className="mb-4">Your appointment has been booked.</p>
+              <button
+                className="bg-[#c83589] text-white rounded px-4 py-2 font-semibold hover:bg-[#ff77a4]"
+                onClick={() => {
+                  setShowConfirmation(false);
+                  router.push("/account");
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="mt-25 w-full !max-w-none px-0">
         <ContactForm />
       </div>
-      </>
+    </>
   );
 }
