@@ -1,15 +1,16 @@
-// import { DrizzleAdapter } from "@auth/drizzle-adapter";
-// import NextAuth from "next-auth";
-import type { DefaultSession, NextAuthConfig } from "next-auth";
+import { DrizzleAdapter } from "@auth/drizzle-adapter";
+import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 
-// import { db } from "@/server/db";
-// import {
-//     accounts,
-//     sessions,
-//     users,
-//     verificationTokens,
-// } from "@/server/db/schema";
+import { db } from "@/server/db";
+import {
+    accounts,
+    sessions,
+    users,
+    verificationTokens,
+} from "@/server/db/schema";
+
+import type { NextAuthConfig } from "next-auth";
 
 export const authConfig = {
     providers: [
@@ -19,12 +20,12 @@ export const authConfig = {
         }),
     ],
     secret: process.env.AUTH_SECRET,
-    // adapter: DrizzleAdapter(db, {
-    //     usersTable: users,
-    //     accountsTable: accounts,
-    //     sessionsTable: sessions,
-    //     verificationTokensTable: verificationTokens,
-    // }),
+    adapter: DrizzleAdapter(db, {
+        usersTable: users,
+        accountsTable: accounts,
+        sessionsTable: sessions,
+        verificationTokensTable: verificationTokens,
+    }),
     callbacks: {
         session: ({ session, user }) => ({
             ...session,
