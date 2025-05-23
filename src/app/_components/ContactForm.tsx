@@ -28,6 +28,8 @@ export default function ContactForm() {
         },
         () => {
           setError(true);
+          console.error("Email sending failed");
+          setSent(false);
         }
       );
   };
@@ -54,6 +56,7 @@ export default function ContactForm() {
           onSubmit={handleSubmit}
           className="flex flex-col gap-4"
         >
+          {/* <input type="hidden" name="user_id" value="anonymous" /> */}
           <input
             type="text"
             name="user_name"
@@ -89,7 +92,8 @@ export default function ContactForm() {
         )}
         {error && (
           <div className="mt-4 text-red-100 text-center bg-red-700 rounded px-4 py-2">
-            Oops! Something went wrong. Please try again or reach out by clicking on the WhatsApp icon in the footer.
+            Oops! Something went wrong. Please try again or reach out by
+            clicking on the WhatsApp icon in the footer.
           </div>
         )}
       </div>
