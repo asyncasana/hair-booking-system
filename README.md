@@ -11,7 +11,7 @@ Built with Next.js, Drizzle ORM, PostgreSQL, and Google OAuth.
   Coming Soon:
 - Online booking system
 - Services listing
-- Contact form
+- Contact form with EmailJS integration
 - Login with Google OAuth
 - PostgreSQL database (local and Neon for production)
 - Accessible, mobile-friendly design
@@ -23,9 +23,11 @@ Built with Next.js, Drizzle ORM, PostgreSQL, and Google OAuth.
 - [Next.js](https://nextjs.org/)
 - [Drizzle ORM](https://orm.drizzle.team/)
 - [PostgreSQL](https://www.postgresql.org/)
+- [Neon](https://neon.tech/) (PostgreSQL database hosting)
 - [Tailwind CSS](https://tailwindcss.com/)
 - [NextAuth.js](https://next-auth.js.org/) (Google OAuth)
 - [Vercel](https://vercel.com/) for deployment
+- [EmailJS](https://www.emailjs.com/) (contact form email delivery)
 
 ---
 
@@ -50,19 +52,30 @@ Built with Next.js, Drizzle ORM, PostgreSQL, and Google OAuth.
 
 4. **Set up your database:**
 
-   - Make sure PostgreSQL is running.
+   - Create a Neon Postgres project at [neon.tech](https://neon.tech/).
+   - Copy your Neon connection string to your `.env` file as `DATABASE_URL`.
    - Run Drizzle migrations:
      ```sh
      npx drizzle-kit push
      ```
 
-5. **Run the development server:**
+5. **Set up EmailJS (for contact form):**
+   - Create an account at [emailjs.com](https://www.emailjs.com/).
+   - Get your Service ID, Template ID, and Public Key from the EmailJS dashboard.
+   - Add them to your `.env` file:
+     ```
+     NEXT_PUBLIC_EMAILJS_SERVICE_ID=your_service_id
+     NEXT_PUBLIC_EMAILJS_TEMPLATE_ID=your_template_id
+     NEXT_PUBLIC_EMAILJS_PUBLIC_KEY=your_public_key
+     ```
+
+6. **Run the development server:**
 
    ```sh
    npm run dev
    ```
 
-6. **Open [http://localhost:3000](http://localhost:3000) in your browser.**
+7. **Open [http://localhost:3000](http://localhost:3000) in your browser.**
 
 ---
 
