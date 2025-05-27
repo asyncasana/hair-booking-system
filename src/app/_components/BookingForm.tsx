@@ -8,6 +8,7 @@ import Calendar from "react-calendar";
 import BookingCalendar from "@/app/_components/BookingCalendar";
 import ContactForm from "./ContactForm";
 import "react-calendar/dist/Calendar.css";
+import { parseTimeString } from "@/lib/utils/time";
 
 export default function BookingForm() {
   const router = useRouter();
@@ -34,6 +35,13 @@ export default function BookingForm() {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [showError, setShowError] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const parsed = parseTimeString(selectedTime);
+  if (selectedDate && parsed) {
+    const date = new Date(selectedDate);
+    date.setHours(parsed.hours, parsed.minutes, 0, 0);
+    // ... use date as startTime
+  }
 
   // Handler for booking submission
   const handleConfirmBooking = async () => {
@@ -62,7 +70,9 @@ export default function BookingForm() {
     const bookingData = {
       service: selectedService,
       startTime: startTime ? startTime.toISOString() : null,
-      user: session?.user?.email,
+      userId: session?.user?.id || null,
+      customerName: session?.user?.name || "Guest",
+      customerEmail: session?.user?.email || null,
     };
 
     try {
@@ -220,7 +230,7 @@ export default function BookingForm() {
                 className="bg-[#c83589] text-white rounded px-4 py-2 font-semibold hover:bg-[#ff77a4]"
                 onClick={() => {
                   setShowConfirmation(false);
-                  router.push("/account");
+                  router.push("/account/bookings");
                 }}
               >
                 Close

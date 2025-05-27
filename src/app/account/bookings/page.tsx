@@ -21,11 +21,13 @@ export default function BookingsPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Example: Replace with fetch logic
-    // setBookings(fetchedBookings);
-  }, []);
-
-  // Loading overlay check after hooks
+    const fetchBookings = async () => {
+      const res = await fetch("/api/bookings");
+      const data = await res.json();
+      setBookings(data.bookings); // Make sure your API returns { bookings: [...] }
+    };
+    if (session) fetchBookings();
+  }, [session]);
   if (status === "loading") {
     return <LoadingOverlay />;
   }
