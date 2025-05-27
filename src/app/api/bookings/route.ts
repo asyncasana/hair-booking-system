@@ -34,6 +34,8 @@ export async function GET(_req: Request) {
 // API route to handle booking creation
 // Expects a JSON body with service ID, start time, and optional user/customer details
 export async function POST(req: Request) {
+  const session = await getServerSession(authConfig as any) as { user?: { id?: string } };
+  const userId = session?.user?.id;
   try {
     const data = await req.json();
     console.log("Booking data received:", data);
@@ -54,7 +56,7 @@ export async function POST(req: Request) {
     // Insert booking with correct endTime
     await db.insert(bookings).values({
       serviceId: Number(data.service),
-      userId: data.userId || null,
+      userId: userId || null,
       customerName: data.customerName || "Guest",
       customerEmail: data.customerEmail || null,
       startTime: new Date(data.startTime),

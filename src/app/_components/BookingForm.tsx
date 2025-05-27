@@ -70,7 +70,6 @@ export default function BookingForm() {
     const bookingData = {
       service: selectedService,
       startTime: startTime ? startTime.toISOString() : null,
-      userId: session?.user?.id || null,
       customerName: session?.user?.name || "Guest",
       customerEmail: session?.user?.email || null,
     };
