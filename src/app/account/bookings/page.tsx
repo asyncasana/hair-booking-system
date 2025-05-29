@@ -24,7 +24,13 @@ export default function BookingsPage() {
     const fetchBookings = async () => {
       const res = await fetch("/api/bookings");
       const data = await res.json();
-      setBookings(data.bookings); // Make sure your API returns { bookings: [...] }
+      const bookings = data.bookings.map((b: any) => ({
+      id: b.id,
+      service: b.serviceName || b.service || b.serviceId, // Adjust as needed
+      date: b.startTime ? b.startTime.split("T")[0] : "",
+      time: b.startTime ? b.startTime.split("T")[1]?.slice(0, 5) : "",
+    }));
+      setBookings(bookings);
     };
     if (session) fetchBookings();
   }, [session]);
@@ -63,7 +69,12 @@ export default function BookingsPage() {
                   <div>
                     {b.date} at {b.time}
                   </div>
-                  {/* Add Edit/Cancel buttons here */}
+                  <button
+                    onClick={() => router.push(`/book/${b.id}`)}
+                    className="mt-2 px-3 py-1 bg-[#c83589] text-white rounded hover:bg-[#ff77a4] transition"
+                  >
+                    View Details
+                  </button>
                 </li>
               ))}
             </ul>
