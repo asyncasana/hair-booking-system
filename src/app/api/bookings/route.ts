@@ -25,8 +25,12 @@ export async function GET(_req: Request) {
     return NextResponse.json({ bookings: [] });
   }
   const userId = session.user.id;
+
   const userBookings = await db.query.bookings.findMany({
     where: (b, { eq }) => eq(b.userId, userId),
+    with: {
+      service: true, // Include service details
+    },
   });
   return NextResponse.json({ bookings: userBookings });
 }

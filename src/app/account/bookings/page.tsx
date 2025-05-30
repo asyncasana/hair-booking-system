@@ -5,13 +5,14 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import LoadingOverlay from "@/app/_components/LoadingOverlay";
 import ContactForm from "@/app/_components/ContactForm";
+import { format } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
 
 type Booking = {
   id: string;
-  service: string;
-  date: string; // ISO string
-  time: string;
-  // ...other fields
+  serviceName: string;
+  duration?: number;
+  startTime: string;
 };
 
 export default function BookingsPage() {
@@ -19,17 +20,18 @@ export default function BookingsPage() {
   const { data: session, status } = useSession();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const router = useRouter();
+  const timeZone = "Europe/London";
 
   useEffect(() => {
     const fetchBookings = async () => {
       const res = await fetch("/api/bookings");
       const data = await res.json();
       const bookings = data.bookings.map((b: any) => ({
-      id: b.id,
-      service: b.serviceName || b.service || b.serviceId, // Adjust as needed
-      date: b.startTime ? b.startTime.split("T")[0] : "",
-      time: b.startTime ? b.startTime.split("T")[1]?.slice(0, 5) : "",
-    }));
+        id: b.id,
+        serviceName: b.service?.name,
+        duration: b.service?.duration,
+        startTime: b.startTime,
+      }));
       setBookings(bookings);
     };
     if (session) fetchBookings();
@@ -40,11 +42,13 @@ export default function BookingsPage() {
 
   // Split bookings into past and current
   const now = new Date();
+  const nowZoned = toZonedTime(now, timeZone);
+
   const currentBookings = bookings.filter(
-    (b) => new Date(`${b.date}T${b.time}`) >= now
+    (b) => toZonedTime(new Date(b.startTime), timeZone) >= nowZoned
   );
   const pastBookings = bookings.filter(
-    (b) => new Date(`${b.date}T${b.time}`) < now
+    (b) => toZonedTime(new Date(b.startTime), timeZone) < nowZoned
   );
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen bg-gray-100">
@@ -64,17 +68,41 @@ export default function BookingsPage() {
             <h2 className="text-lg font-semibold mb-2">Upcoming Bookings</h2>
             <ul>
               {currentBookings.map((b) => (
-                <li key={b.id} className="mb-4 border-b pb-2">
-                  <div>{b.service}</div>
+                <li
+                  key={b.id}
+                  className="mb-8 border-b pb-4 flex flex-col gap-2"
+                >
+                  <div className="font-semibold">{b.serviceName}</div>
                   <div>
-                    {b.date} at {b.time}
+                    {format(
+                      toZonedTime(new Date(b.startTime), timeZone),
+                      "MMMM do h:mmaa"
+                    )}
                   </div>
-                  <button
-                    onClick={() => router.push(`/book/${b.id}`)}
-                    className="mt-2 px-3 py-1 bg-[#c83589] text-white rounded hover:bg-[#ff77a4] transition"
-                  >
-                    View Details
-                  </button>
+                  {b.duration && <div>Duration: {b.duration} minutes</div>}
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      onClick={() =>
+                        router.push(`/account/bookings/${b.id}/edit`)
+                      }
+                      className="px-3 py-1 bg-[#c83589] text-white rounded hover:bg-[#ff77a4] transition"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={async () => {
+                        await fetch(`/api/bookings/${b.id}`, {
+                          method: "DELETE",
+                        });
+                        setBookings((prev) =>
+                          prev.filter((booking) => booking.id !== b.id)
+                        );
+                      }}
+                      className="px-3 py-1 bg-red-400 text-white rounded hover:bg-red-500 transition"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -87,10 +115,14 @@ export default function BookingsPage() {
             <ul>
               {pastBookings.map((b) => (
                 <li key={b.id} className="mb-4 border-b pb-2">
-                  <div>{b.service}</div>
+                  <div>{b.serviceName}</div>
                   <div>
-                    {b.date} at {b.time}
+                    {format(
+                      toZonedTime(new Date(b.startTime), timeZone),
+                      "MMMM do h:mmaa"
+                    )}
                   </div>
+                  {b.duration && <div>Duration: {b.duration} minutes</div>}
                 </li>
               ))}
             </ul>

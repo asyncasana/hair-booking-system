@@ -10,7 +10,7 @@ type BookingCalendarProps = {
   setSelectedTime: (time: string) => void;
 };
 
-const allTimeSlots = ["10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM"];
+const allTimeSlots = ["10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
 
 export default function BookingCalendar({
   selectedDate,
@@ -61,7 +61,7 @@ export default function BookingCalendar({
 // Helper function
 function getBookedSlotsForDate(date: Date): string[] {
   if (date.toISOString().slice(0, 10) === "2024-06-01") {
-    return ["10:00 AM", "1:00 PM"];
+    return ["10:00", "13:00"];
   }
   return [];
 }
