@@ -58,10 +58,7 @@ export async function PATCH(req: Request, context: { params: { id: string } }) {
   return NextResponse.json({ success: true, result });
 }
 
-export async function DELETE(
-  req: Request,
-  context: { params: { id: string } }
-) {
+export async function DELETE(req: Request, context: any) {
   const { params } = context;
   const session = (await getServerSession(authConfig as any)) as {
     user?: { id?: string };
