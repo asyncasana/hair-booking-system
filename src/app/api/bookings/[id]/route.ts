@@ -6,12 +6,11 @@ import { authConfig } from "@/server/auth/config";
 import { eq, and } from "drizzle-orm";
 
 // Always use context as the second argument, then extract params inside
-export async function GET(
-  req: Request,
-  context: { params: { id: string } }
-) {
+export async function GET(req: Request, context: any) {
   const { params } = context;
-  const session = await getServerSession(authConfig as any) as { user?: { id?: string } };
+  const session = (await getServerSession(authConfig as any)) as {
+    user?: { id?: string };
+  };
   if (!session?.user?.id) {
     return NextResponse.json({ booking: null }, { status: 401 });
   }
@@ -25,12 +24,11 @@ export async function GET(
   return NextResponse.json({ booking: booking || null });
 }
 
-export async function PATCH(
-  req: Request,
-  context: { params: { id: string } }
-) {
+export async function PATCH(req: Request, context: { params: { id: string } }) {
   const { params } = context;
-  const session = await getServerSession(authConfig as any) as { user?: { id?: string } };
+  const session = (await getServerSession(authConfig as any)) as {
+    user?: { id?: string };
+  };
   if (!session?.user?.id) {
     return NextResponse.json({ success: false }, { status: 401 });
   }
@@ -65,7 +63,9 @@ export async function DELETE(
   context: { params: { id: string } }
 ) {
   const { params } = context;
-  const session = await getServerSession(authConfig as any) as { user?: { id?: string } };
+  const session = (await getServerSession(authConfig as any)) as {
+    user?: { id?: string };
+  };
   if (!session?.user?.id) {
     return NextResponse.json({ success: false }, { status: 401 });
   }
