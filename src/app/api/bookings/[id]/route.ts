@@ -5,7 +5,7 @@ import { getServerSession } from "next-auth/next";
 import { authConfig } from "@/server/auth/config";
 import { eq, and } from "drizzle-orm";
 
-// Always use context as the second argument, then extract params inside
+// Handler for GET request to fetch a booking by ID
 export async function GET(req: Request, context: any) {
   const { params } = context;
   const session = (await getServerSession(authConfig as any)) as {
@@ -24,7 +24,8 @@ export async function GET(req: Request, context: any) {
   return NextResponse.json({ booking: booking || null });
 }
 
-export async function PATCH(req: Request, context: { params: { id: string } }) {
+// Handler for PATCH request to update a booking by ID
+export async function PATCH(req: Request, context: any) {
   const { params } = context;
   const session = (await getServerSession(authConfig as any)) as {
     user?: { id?: string };
@@ -58,6 +59,7 @@ export async function PATCH(req: Request, context: { params: { id: string } }) {
   return NextResponse.json({ success: true, result });
 }
 
+// Handler for DELETE request to remove a booking by ID
 export async function DELETE(req: Request, context: any) {
   const { params } = context;
   const session = (await getServerSession(authConfig as any)) as {
