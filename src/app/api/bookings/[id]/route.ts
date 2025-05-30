@@ -25,7 +25,7 @@ export async function GET(req: Request, context: { params: { id: string } }) {
   return NextResponse.json({ booking: booking || null });
 }
 
-export async function PATCH(req: Request, context: { params: { id: string } }) {
+export async function PATCH(req: Request,  context: { params: { id: string } }) {
   const { params } = context;
   const session = (await getServerSession(authConfig as any)) as {
     user?: { id?: string };
