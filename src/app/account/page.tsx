@@ -191,9 +191,6 @@ export default function AccountPage() {
       >
         Logout
       </button>
-      <div className="mt-12 w-full">
-        <ContactForm />
-      </div>
     </div>
   );
 }

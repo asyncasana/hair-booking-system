@@ -1,5 +1,5 @@
 import "@/styles/globals.css";
-
+import CookieBanner from "./_components/CookieBanner";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Header from "./_components/Header";
@@ -28,6 +28,7 @@ export default function RootLayout({
           {children}
           <Footer />
         </SessionProviderWrapper>
+        <CookieBanner />
       </body>
     </html>
   );

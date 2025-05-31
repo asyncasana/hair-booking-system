@@ -24,7 +24,7 @@ export default function Header() {
         <Link href="/services" className="hover:text-pink-300 transition">
           Services
         </Link>
-        <Link href="#contact" className="hover:text-pink-300 transition">
+        <Link href="/contact" className="hover:text-pink-300 transition">
           Contact Us
         </Link>
         {session ? (
@@ -121,7 +121,7 @@ export default function Header() {
               Services
             </Link>
             <Link
-              href="#contact"
+              href="/contact"
               className="px-6 py-3 hover:bg-pink-300/30 transition flex items-center gap-2"
               onClick={() => setOpen(false)}
             >

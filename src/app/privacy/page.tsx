@@ -5,7 +5,7 @@ import ContactForm from "../_components/ContactForm";
 export default function PrivacyPage() {
   return (
     <div className="mx-auto pt-12">
-      <div className="max-w-2xl mx-auto pt-12 px-4">
+      <div className="max-w-2xl mx-auto pt-12 px-4 mb-24">
         <h1 className="text-3xl font-bold text-[#c83589] mb-6">
           Privacy Policy – Hair with Iryna
         </h1>
@@ -54,9 +54,7 @@ export default function PrivacyPage() {
           <span className="underline">irina.boyeva64@gmail.com</span>
         </p>
       </div>
-      <div className="mt-12 w-full">
-        <ContactForm />
-      </div>
+
     </div>
   );
 }
