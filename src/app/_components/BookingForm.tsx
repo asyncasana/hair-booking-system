@@ -4,11 +4,11 @@ import { useState } from "react";
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession, signIn } from "next-auth/react";
-import Calendar from "react-calendar";
 import BookingCalendar from "@/app/_components/BookingCalendar";
 import ContactForm from "./ContactForm";
 import "react-calendar/dist/Calendar.css";
 import { parseTimeString } from "@/lib/utils/time";
+import { date } from "drizzle-orm/pg-core";
 
 export default function BookingForm() {
   const router = useRouter();
@@ -47,29 +47,46 @@ export default function BookingForm() {
   const handleConfirmBooking = async () => {
     let startTime: Date | null = null;
     if (selectedDate && selectedTime) {
+      // Try 12-hour format first
       const timeParts = selectedTime.split(" ");
       if (timeParts.length === 2) {
         const [time, modifier] = timeParts;
         if (time) {
-          const timeSplit = time.split(":");
-          if (timeSplit.length === 2) {
-            let hours = Number(timeSplit[0]);
-            let minutes = Number(timeSplit[1]);
-            if (!isNaN(hours) && !isNaN(minutes)) {
-              if (modifier === "PM" && hours < 12) hours += 12;
-              if (modifier === "AM" && hours === 12) hours = 0;
-              const date = new Date(selectedDate);
-              date.setHours(hours, minutes, 0, 0);
-              startTime = date;
-            }
+          // <-- Add this check
+          const [hoursStr, minutesStr] = time.split(":");
+          let hours = Number(hoursStr);
+          let minutes = Number(minutesStr);
+          if (!isNaN(hours) && !isNaN(minutes)) {
+            if (modifier === "PM" && hours < 12) hours += 12;
+            if (modifier === "AM" && hours === 12) hours = 0;
+            const date = new Date(selectedDate);
+            date.setHours(hours, minutes, 0, 0);
+            startTime = date;
           }
+        }
+      } else if (selectedTime.includes(":")) {
+        // 24-hour format fallback
+        const [hoursStr, minutesStr] = selectedTime.split(":");
+        let hours = Number(hoursStr);
+        let minutes = Number(minutesStr);
+        if (!isNaN(hours) && !isNaN(minutes)) {
+          const date = new Date(selectedDate);
+          date.setHours(hours, minutes, 0, 0);
+          startTime = date;
         }
       }
     }
 
+    // Validate startTime
+    if (!startTime || isNaN(startTime.getTime())) {
+      setShowError(true);
+      alert("Invalid date or time selected.");
+      return;
+    }
+
     const bookingData = {
       service: selectedService,
-      startTime: startTime ? startTime.toISOString() : null,
+      startTime: startTime.toISOString(),
       customerName: session?.user?.name || "Guest",
       customerEmail: session?.user?.email || null,
     };
@@ -84,7 +101,9 @@ export default function BookingForm() {
     } catch (error) {
       setShowError(true);
     }
-    console.log("Submitting booking", bookingData);
+    console.log("selectedDate:", selectedDate);
+    console.log("selectedTime:", selectedTime);
+    console.log("startTime:", startTime);
   };
 
   // If not logged in
