@@ -93,7 +93,7 @@ export default function BookingsPage() {
           <>
             <h2 className="text-lg font-semibold mb-2">Upcoming Bookings</h2>
 
-              <div className="block md:hidden">
+              <div className="block">
                 {currentFormatted.map((b) => (
                   <div key={b.id} className="mb-4 p-4 bg-white rounded shadow">
                     <div className="font-semibold">{b.serviceName}</div>
