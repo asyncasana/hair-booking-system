@@ -137,7 +137,7 @@ export default function BookingsPage() {
           <>
             <h2 className="text-lg font-semibold mt-8 mb-2">Past Bookings</h2>
             <div className="overflow-x-auto">
-              <table className="min-w-full bg-gray-50 rounded shadow">
+              <table className="min-w-full bg-gray-50 rounded shadow mb-20">
                 <thead>
                   <tr>
                     <th className="px-4 py-2 text-left">Service</th>

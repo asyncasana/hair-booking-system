@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSession, signOut, signIn } from "next-auth/react";
-import ContactForm from "@/app/_components/ContactForm";
 import { useRouter } from "next/navigation";
 import LoadingOverlay from "@/app/_components/LoadingOverlay";
+import imageCompression from "browser-image-compression";
 
 export default function AccountPage() {
   const { data: session, status } = useSession();
@@ -13,23 +13,67 @@ export default function AccountPage() {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [editingImage, setEditingImage] = useState(false);
   const [editingInfo, setEditingInfo] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [imageSuccess, setImageSuccess] = useState(false);
 
   // Account info state for editing
   const [name, setName] = useState(session?.user?.name || "");
   const [phone, setPhone] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const router = useRouter();
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+
+  // Handle image upload
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("handleImageUpload called", e.target.files);
+
     const file = e.target.files?.[0];
     if (file) {
+      const compressedFile = await imageCompression(file, {
+        maxWidthOrHeight: 256,
+        maxSizeMB: 0.1,
+        useWebWorker: true,
+      });
+
       const reader = new FileReader();
-      reader.onload = (ev) => setUploadedImage(ev.target?.result as string);
-      reader.readAsDataURL(file);
-      setEditingImage(false);
-      // TODO: Upload to DB here
+      reader.onload = async (ev) => {
+        const base64 = ev.target?.result as string;
+        setUploadedImage(base64);
+
+        console.log("Uploading image to DB...");
+        const res = await fetch("/api/account", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, phone, image: base64 }),
+        });
+        console.log("Upload response:", res.status);
+        if (res.ok) {
+          setImageSuccess(true); // Show confirmation
+          fetchUser(); // Refresh user data
+        } else {
+          alert("Image upload failed.");
+        }
+      };
+      reader.readAsDataURL(compressedFile);
+    }
+    setEditingImage(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
+
+  const fetchUser = async () => {
+    const res = await fetch("/api/account");
+    const data = await res.json();
+    if (data.user) {
+      setName(data.user.name || "");
+      setPhone(data.user.phone || "");
+      setUploadedImage(data.user.image || null);
+    }
+  };
+
+  useEffect(() => {
+    fetchUser();
+  }, []);
 
   if (status === "loading") {
     return <LoadingOverlay />;
@@ -61,8 +105,8 @@ export default function AccountPage() {
   }
 
   // Decide which image to show
-  //   const profileImage =
-  //     uploadedImage || session.user?.image || "/images/user-placeholder.jpg";
+  const profileImage =
+    uploadedImage || session.user?.image || "/images/user-placeholder.jpg";
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 pt-12">
@@ -76,16 +120,24 @@ export default function AccountPage() {
         style={{ width: 96, height: 96 }}
       >
         <img
-          src="/images/user-placeholder.jpg"
+          src={profileImage}
           alt="Profile"
           className="w-24 h-24 rounded-full object-cover border-4 border-[#c83589] transition"
           draggable={false}
+        />
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: "none" }} // Use style instead of className="hidden"
+          onChange={handleImageUpload}
         />
         {/* Overlay */}
         {editingImage && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full">
             <button
               className="text-white font-semibold"
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 fileInputRef.current?.click();
@@ -93,26 +145,15 @@ export default function AccountPage() {
             >
               Edit
             </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleImageUpload}
-            />
           </div>
         )}
-        {uploadedImage && (
-          <button
-            className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-white text-[#c83589] border border-[#c83589] rounded-full px-3 py-1 text-xs shadow hover:bg-[#ffe4f3] transition"
-            style={{ zIndex: 20 }}
-            onClick={() => setUploadedImage(null)}
-            type="button"
-          >
-            Remove
-          </button>
-        )}
       </div>
+
+      {imageSuccess && (
+        <div className="text-green-600 font-semibold mt-2">
+          Profile image updated!
+        </div>
+      )}
 
       {/* Account Info */}
       {!editingInfo ? (
@@ -147,10 +188,16 @@ export default function AccountPage() {
       ) : (
         <form
           className="flex flex-col gap-4 max-w-sm w-full bg-white p-6 rounded-xl shadow mb-4"
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
+            await fetch("/api/account", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ name, phone }),
+            });
             setEditingInfo(false);
-            // TODO: Save changes to DB here
+            setSuccess(true);
+            fetchUser(); // Refetch user data
           }}
         >
           <label>

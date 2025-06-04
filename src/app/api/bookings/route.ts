@@ -4,6 +4,7 @@ import { bookings } from "@/server/db/schema";
 import { addMinutesToISOString } from "@/lib/utils/time";
 import { getServerSession } from "next-auth/next";
 import { authConfig } from "@/server/auth/config";
+import nodemailer from "nodemailer";
 
 // Shape of the session object with user information
 type SessionWithUser = {
@@ -38,7 +39,9 @@ export async function GET(_req: Request) {
 // API route to handle booking creation
 // Expects a JSON body with service ID, start time, and optional user/customer details
 export async function POST(req: Request) {
-  const session = await getServerSession(authConfig as any) as { user?: { id?: string } };
+  const session = (await getServerSession(authConfig as any)) as {
+    user?: { id?: string };
+  };
   const userId = session?.user?.id;
   try {
     const data = await req.json();
@@ -68,6 +71,26 @@ export async function POST(req: Request) {
       status: "pending",
       notes: "",
     });
+
+    // --- ADMIN EMAIL NOTIFICATION ---
+    const transporter = nodemailer.createTransport({
+      service: "gmail", // or your provider
+      auth: {
+        user: process.env.ADMIN_EMAIL,
+        pass: process.env.ADMIN_EMAIL_PASSWORD,
+      },
+    });
+
+    await transporter.sendMail({
+      from: process.env.ADMIN_EMAIL,
+      to: process.env.ADMIN_EMAIL,
+      subject: "New Booking Created",
+      text: `A new booking has been made by ${
+        data.customerName || "Guest"
+      } for service ID ${data.service} at ${new Date(data.startTime)}.`,
+    });
+    // --- END EMAIL NOTIFICATION ---
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Booking API error:", error);

@@ -38,7 +38,12 @@ export default function AuthModal({
         </h2>
         <button
           className="w-full mb-4 rounded bg-[#c83589] text-white py-2 font-semibold hover:bg-[#ff77a4] transition"
-          onClick={() => signIn("google")}
+          onClick={() =>
+            signIn("google", {
+              callbackUrl: "/account",
+              prompt: "select_account login",
+            })
+          }
           type="button"
         >
           {mode === "login" ? "Sign in with Google" : "Register with Google"}

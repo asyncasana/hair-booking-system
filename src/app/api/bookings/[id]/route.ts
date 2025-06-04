@@ -4,6 +4,7 @@ import { bookings } from "@/server/db/schema";
 import { getServerSession } from "next-auth/next";
 import { authConfig } from "@/server/auth/config";
 import { eq, and } from "drizzle-orm";
+import nodemailer from "nodemailer";
 
 // Handler for GET request to fetch a booking by ID
 export async function GET(req: Request, context: any) {
@@ -55,6 +56,22 @@ export async function PATCH(req: Request, context: any) {
         eq(bookings.userId, session.user.id!)
       )
     );
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.ADMIN_EMAIL,
+      pass: process.env.ADMIN_EMAIL_PASSWORD,
+    },
+  });
+
+  await transporter.sendMail({
+    from: process.env.ADMIN_EMAIL,
+    to: process.env.ADMIN_EMAIL,
+    subject: "Booking Updated",
+    text: `A booking has been updated. Booking ID: ${params.id} customer: ${
+      data.customerName || "Guest"
+    } at ${new Date(data.startTime)}.`,
+  });
 
   return NextResponse.json({ success: true, result });
 }
@@ -76,5 +93,20 @@ export async function DELETE(req: Request, context: any) {
         eq(bookings.userId, session.user.id!)
       )
     );
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.ADMIN_EMAIL,
+      pass: process.env.ADMIN_EMAIL_PASSWORD,
+    },
+  });
+
+  await transporter.sendMail({
+    from: process.env.ADMIN_EMAIL,
+    to: process.env.ADMIN_EMAIL,
+    subject: "Booking Deleted",
+    text: `A booking has been deleted. Booking ID: ${params.id}`,
+  });
+
   return NextResponse.json({ success: true });
 }
