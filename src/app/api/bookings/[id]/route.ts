@@ -80,33 +80,67 @@ export async function PATCH(req: Request, context: any) {
 export async function DELETE(req: Request, context: any) {
   const { params } = context;
   const session = (await getServerSession(authConfig as any)) as {
-    user?: { id?: string };
+    user?: { id?: string; role?: string };
   };
-  if (!session?.user?.id) {
+  if (!session?.user?.id && session?.user?.role !== "admin") {
     return NextResponse.json({ success: false }, { status: 401 });
   }
-  await db
-    .delete(bookings)
-    .where(
-      and(
-        eq(bookings.id, Number(params.id)),
-        eq(bookings.userId, session.user.id!)
-      )
-    );
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.ADMIN_EMAIL,
-      pass: process.env.ADMIN_EMAIL_PASSWORD,
-    },
+
+  // Fetch booking info before deleting
+  const booking = await db.query.bookings.findFirst({
+    where: eq(bookings.id, Number(params.id)),
   });
 
-  await transporter.sendMail({
-    from: process.env.ADMIN_EMAIL,
-    to: process.env.ADMIN_EMAIL,
-    subject: "Booking Deleted",
-    text: `A booking has been deleted. Booking ID: ${params.id}`,
-  });
+  // If admin, delete any booking; if user, only their own
+  const isAdmin = session.user?.role === "admin";
+  const whereClause = isAdmin
+    ? eq(bookings.id, Number(params.id))
+    : and(
+        eq(bookings.id, Number(params.id)),
+        eq(bookings.userId, session.user.id!)
+      );
+
+  await db.delete(bookings).where(whereClause);
+
+  // Send cancellation email to customer if booking exists and has email
+  if (booking?.customerEmail) {
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.ADMIN_EMAIL,
+        pass: process.env.ADMIN_EMAIL_PASSWORD,
+      },
+    });
+
+    // Choose message based on who cancelled
+    const subject = "Your booking has been cancelled";
+    const text = isAdmin
+      ? `Hi ${
+          booking.customerName || "there"
+        }, your appointment was cancelled by the salon. Please contact us if you have questions.`
+      : `Hi ${
+          booking.customerName || "there"
+        }, your appointment has been successfully cancelled.`;
+
+    await transporter.sendMail({
+      from: process.env.ADMIN_EMAIL,
+      to: booking.customerEmail,
+      subject,
+      text,
+    });
+
+    // Message to admin when anyone cancelled
+      await transporter.sendMail({
+        from: process.env.ADMIN_EMAIL,
+        to: process.env.ADMIN_EMAIL,
+        subject: "Booking Cancelled",
+        text: `A booking has been cancelled by the user. Booking ID: ${
+          params.id
+        } customer: ${booking.customerName || "Guest"} at ${new Date(
+          booking.startTime
+        )}.`,
+      });
+  }
 
   return NextResponse.json({ success: true });
 }

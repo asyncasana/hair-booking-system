@@ -51,6 +51,7 @@ export default function ContactForm() {
       <div className="absolute inset-0 bg-[#e984a9]/70 z-10 pointer-events-none" />
       <div className="relative z-20 max-w-xl mx-auto">
         <h2 className="mb-4 text-2xl font-bold text-white">Get in Touch</h2>
+
         <form
           ref={formRef}
           onSubmit={handleSubmit}
@@ -77,6 +78,11 @@ export default function ContactForm() {
             className="rounded bg-white/20 px-4 py-3 text-white placeholder-white/60 focus:outline-none"
             rows={4}
             required
+          />
+          <input
+            type="hidden"
+            name="custom_message"
+            value="Thank you for reaching out! We'll get back to you as soon as possible."
           />
           <button
             type="submit"

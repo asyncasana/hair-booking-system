@@ -13,16 +13,19 @@ type Booking = {
   serviceName: string;
   duration?: number;
   startTime: string;
+  status: string;
 };
 
 export default function BookingsPage() {
   const { data: session, status } = useSession();
-  const [bookings, setBookings] = useState<Booking[]>([]);
   const router = useRouter();
   const timeZone = "Europe/London";
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [mounted, setMounted] = useState(false);
   const [currentFormatted, setCurrentFormatted] = useState<any[]>([]);
   const [pastFormatted, setPastFormatted] = useState<any[]>([]);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [bookingToDelete, setBookingToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -66,11 +69,19 @@ export default function BookingsPage() {
         serviceName: b.service?.name,
         duration: b.service?.duration,
         startTime: b.startTime,
+        status: b.status,
       }));
       setBookings(bookings);
     };
     if (session) fetchBookings();
   }, [session]);
+
+  const handleDelete = async (id: string) => {
+    await fetch(`/api/bookings/${id}`, { method: "DELETE" });
+    setBookings((prev) => prev.filter((booking) => booking.id !== id));
+    setShowDeleteModal(false);
+    setBookingToDelete(null);
+  };
 
   if (status === "loading" || !mounted) {
     return <LoadingOverlay />;
@@ -92,44 +103,67 @@ export default function BookingsPage() {
         {currentFormatted.length > 0 && (
           <>
             <h2 className="text-lg font-semibold mb-2">Upcoming Bookings</h2>
-
-              <div className="block">
-                {currentFormatted.map((b) => (
-                  <div key={b.id} className="mb-4 p-4 bg-white rounded shadow">
-                    <div className="font-semibold">{b.serviceName}</div>
-                    <div className="text-sm text-gray-600">
+            <div className="block">
+              {currentFormatted.map((b) => (
+                <div key={b.id} className="mb-4 p-4 bg-white rounded shadow">
+                  <div className="flex flex-col gap-1">
+                    <div>
+                      <span className="font-semibold text-[#c83589]">
+                        Service:
+                      </span>{" "}
+                      {b.serviceName}
+                    </div>
+                    <div>
+                      <span className="font-semibold text-[#c83589]">
+                        Date & Time:
+                      </span>{" "}
                       {b.formattedStart}
                     </div>
-                    <div className="text-sm">
+                    <div>
+                      <span className="font-semibold text-[#c83589]">
+                        Duration:
+                      </span>{" "}
                       {b.duration ? `${b.duration} min` : "-"}
                     </div>
-                    <div className="flex flex-col gap-2 mt-2">
-                      <button
-                        onClick={() =>
-                          router.push(`/account/bookings/${b.id}/edit`)
-                        }
-                        className="px-3 py-1 bg-[#c83589] text-white rounded hover:bg-[#ff77a4] transition"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={async () => {
-                          await fetch(`/api/bookings/${b.id}`, {
-                            method: "DELETE",
-                          });
-                          setBookings((prev) =>
-                            prev.filter((booking) => booking.id !== b.id)
-                          );
-                        }}
-                        className="px-3 py-1 bg-red-400 text-white rounded hover:bg-red-500 transition"
-                      >
-                        Delete
-                      </button>
-                    </div>
                   </div>
-                ))}
-              </div>
-
+                  <div>
+                    <span className="font-semibold text-[#c83589]">
+                      Status:
+                    </span>{" "}
+                    <span
+                      className={
+                        b.status === "pending"
+                          ? "text-yellow-600"
+                          : b.status === "confirmed"
+                          ? "text-green-700"
+                          : "text-red-600"
+                      }
+                    >
+                      {b.status.charAt(0).toUpperCase() + b.status.slice(1)}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-2 mt-2">
+                    <button
+                      onClick={() =>
+                        router.push(`/account/bookings/${b.id}/edit`)
+                      }
+                      className="px-3 py-1 bg-[#c83589] text-white rounded hover:bg-[#ff77a4] transition"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowDeleteModal(true);
+                        setBookingToDelete(b.id);
+                      }}
+                      className="px-3 py-1 bg-red-400 text-white rounded hover:bg-red-500 transition"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </>
         )}
 
@@ -159,6 +193,39 @@ export default function BookingsPage() {
               </table>
             </div>
           </>
+        )}
+        {/* Confirmation Modal */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+            <div className="bg-white rounded shadow-lg p-6 max-w-sm w-full">
+              <h2 className="text-lg font-bold mb-4 text-[#c83589]">
+                Are you sure?
+              </h2>
+              <p className="mb-6">
+                Do you really want to delete this appointment? This action
+                cannot be undone.
+              </p>
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setBookingToDelete(null);
+                  }}
+                  className="px-4 py-2 bg-gray-200 text-gray-600 rounded font-semibold hover:bg-gray-300 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() =>
+                    bookingToDelete && handleDelete(bookingToDelete)
+                  }
+                  className="px-4 py-2 bg-red-500 text-white rounded font-semibold hover:bg-red-600 transition"
+                >
+                  Yes, Delete
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>

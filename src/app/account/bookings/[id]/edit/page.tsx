@@ -9,6 +9,7 @@ export default function EditBookingPage() {
   const params = useParams();
   const bookingId = params.id as string;
 
+  const [showModal, setShowModal] = useState(false);
   const [booking, setBooking] = useState<any>(null);
   const [serviceName, setServiceName] = useState("");
   const [startTime, setStartTime] = useState("");
