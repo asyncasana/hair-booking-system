@@ -3,7 +3,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useSession, signOut, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import LoadingOverlay from "@/app/_components/LoadingOverlay";
 import imageCompression from "browser-image-compression";
 
 export default function AccountPage() {
@@ -24,8 +23,6 @@ export default function AccountPage() {
 
   // Handle image upload
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("handleImageUpload called", e.target.files);
-
     const file = e.target.files?.[0];
     if (file) {
       const compressedFile = await imageCompression(file, {
@@ -39,13 +36,11 @@ export default function AccountPage() {
         const base64 = ev.target?.result as string;
         setUploadedImage(base64);
 
-        console.log("Uploading image to DB...");
         const res = await fetch("/api/account", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name, phone, image: base64 }),
         });
-        console.log("Upload response:", res.status);
         if (res.ok) {
           setImageSuccess(true); // Show confirmation
           fetchUser(); // Refresh user data
@@ -73,10 +68,35 @@ export default function AccountPage() {
 
   useEffect(() => {
     fetchUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (status === "loading") {
-    return <LoadingOverlay />;
+    // Inline loader
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <svg
+          className="animate-spin h-8 w-8 text-[#c83589] mr-2"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+            fill="none"
+          />
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8v8z"
+          />
+        </svg>
+        <span className="text-[#c83589] font-semibold">Loading...</span>
+      </div>
+    );
   }
 
   // If user is not logged in, show login prompt
@@ -129,7 +149,7 @@ export default function AccountPage() {
           ref={fileInputRef}
           type="file"
           accept="image/*"
-          style={{ display: "none" }} // Use style instead of className="hidden"
+          style={{ display: "none" }}
           onChange={handleImageUpload}
         />
         {/* Overlay */}

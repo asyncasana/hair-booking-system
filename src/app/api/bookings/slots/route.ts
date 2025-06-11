@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { db } from "@/server/db";
-import { bookings } from "@/server/db/schema";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);

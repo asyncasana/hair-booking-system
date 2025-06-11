@@ -8,7 +8,6 @@ import ContactForm from "./ContactForm";
 import AuthModal from "@/app/_components/AuthModal";
 import "react-calendar/dist/Calendar.css";
 import { parseTimeString } from "@/lib/utils/time";
-import { date } from "drizzle-orm/pg-core";
 
 export default function BookingForm() {
   const router = useRouter();

@@ -4,7 +4,6 @@ import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import React from "react";
 import { useRouter } from "next/navigation";
-import LoadingOverlay from "@/app/_components/LoadingOverlay";
 import { format } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 
@@ -26,6 +25,7 @@ export default function BookingsPage() {
   const [pastFormatted, setPastFormatted] = useState<any[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [bookingToDelete, setBookingToDelete] = useState<string | null>(null);
+  const [bookingsLoading, setBookingsLoading] = useState(true); // NEW
 
   useEffect(() => {
     setMounted(true);
@@ -62,6 +62,7 @@ export default function BookingsPage() {
 
   useEffect(() => {
     const fetchBookings = async () => {
+      setBookingsLoading(true); // NEW
       const res = await fetch("/api/bookings");
       const data = await res.json();
       const bookings = data.bookings.map((b: any) => ({
@@ -72,6 +73,7 @@ export default function BookingsPage() {
         status: b.status,
       }));
       setBookings(bookings);
+      setBookingsLoading(false); // NEW
     };
     if (session) fetchBookings();
   }, [session]);
@@ -84,7 +86,31 @@ export default function BookingsPage() {
   };
 
   if (status === "loading" || !mounted) {
-    return <LoadingOverlay />;
+    // Inline loader replacement for LoadingOverlay
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <svg
+          className="animate-spin h-8 w-8 text-[#c83589] mr-2"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+            fill="none"
+          />
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8v8z"
+          />
+        </svg>
+        <span className="text-[#c83589] font-semibold">Loading...</span>
+      </div>
+    );
   }
 
   return (
@@ -94,7 +120,8 @@ export default function BookingsPage() {
           Your Bookings
         </h1>
 
-        {bookings.length === 0 && (
+        {/* Only show this message if not loading */}
+        {bookings.length === 0 && !bookingsLoading && (
           <div className="text-gray-500 text-center mb-8">
             You have no bookings yet.
           </div>
