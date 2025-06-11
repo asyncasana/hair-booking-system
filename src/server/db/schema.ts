@@ -72,6 +72,12 @@ export const users = createTable("user", (d) => ({
     .default(sql`CURRENT_TIMESTAMP`),
   image: d.varchar({ length: 255 }),
   role: d.varchar({ length: 30 }).notNull().default("user"),
+  resetToken: d.varchar({ length: 1024 }),
+  resetTokenExpiry: d
+    .timestamp({
+      mode: "date",
+      withTimezone: true,
+    }),
 }));
 
 export const usersRelations = relations(users, ({ many }) => ({

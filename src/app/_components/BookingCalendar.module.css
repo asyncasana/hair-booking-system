@@ -1,0 +1,16 @@
+/* BookingCalendar.module.css */
+.react-calendar {
+  border: none !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 2px 16px #c8358922 !important;
+  font-family: inherit;
+}
+.react-calendar__tile--active,
+.react-calendar__tile--now {
+  background: #c83589 !important;
+  color: #fff !important;
+  border-radius: 0.5rem !important;
+}
+.react-calendar__tile--hover {
+  background: #ffe4ef !important;
+}

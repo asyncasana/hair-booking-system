@@ -1,0 +1,1 @@
+ALTER TABLE "hair-booking-system_user" ALTER COLUMN "resetToken" SET DATA TYPE varchar(1024);

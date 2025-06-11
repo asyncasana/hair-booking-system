@@ -29,6 +29,20 @@
       "when": 1749466140236,
       "tag": "0003_talented_jackpot",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1749638803230,
+      "tag": "0004_nervous_loa",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1749638942238,
+      "tag": "0005_abnormal_imperial_guard",
+      "breakpoints": true
     }
   ]
 }
