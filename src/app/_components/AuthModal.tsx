@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function AuthModal({
   open,
@@ -10,6 +11,7 @@ export default function AuthModal({
   open: boolean;
   onClose: () => void;
 }) {
+  const router = useRouter();
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
@@ -38,7 +40,10 @@ export default function AuthModal({
     });
     setLoading(false);
     if (res?.error) setError("Invalid email or password");
-    else onClose();
+    else {
+      onClose();
+      router.push("/account");
+    }
   };
 
   // Handle password reset
@@ -84,6 +89,7 @@ export default function AuthModal({
         callbackUrl: "/account",
       });
       onClose();
+      router.push("/account");
     } else {
       const data = await res.json();
       setError(data.error || "Registration failed");
@@ -154,7 +160,7 @@ export default function AuthModal({
               placeholder="Email"
               className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:border-[#c83589] transition text-gray-900 bg-white"
               value={resetEmail}
-              onChange={e => setResetEmail(e.target.value)}
+              onChange={(e) => setResetEmail(e.target.value)}
               required
             />
             {error && <div className="text-red-500 text-sm">{error}</div>}
@@ -191,7 +197,10 @@ export default function AuthModal({
             >
               {mode === "register" && (
                 <div className="flex flex-col items-start">
-                  <label htmlFor="name" className="mb-1 text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="name"
+                    className="mb-1 text-sm font-medium text-gray-700"
+                  >
                     Name
                   </label>
                   <input
@@ -200,13 +209,16 @@ export default function AuthModal({
                     placeholder="Name"
                     className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:border-[#c83589] transition text-gray-900 bg-white"
                     value={name}
-                    onChange={e => setName(e.target.value)}
+                    onChange={(e) => setName(e.target.value)}
                     required
                   />
                 </div>
               )}
               <div className="flex flex-col items-start">
-                <label htmlFor="email" className="mb-1 text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="email"
+                  className="mb-1 text-sm font-medium text-gray-700"
+                >
                   Email
                 </label>
                 <input
@@ -215,12 +227,15 @@ export default function AuthModal({
                   placeholder="Email"
                   className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:border-[#c83589] transition text-gray-900 bg-white"
                   value={email}
-                  onChange={e => setEmail(e.target.value)}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                 />
               </div>
               <div className="flex flex-col items-start relative w-full">
-                <label htmlFor="password" className="mb-1 text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="password"
+                  className="mb-1 text-sm font-medium text-gray-700"
+                >
                   Password
                 </label>
                 <input
@@ -229,13 +244,13 @@ export default function AuthModal({
                   placeholder="Password"
                   className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:border-[#c83589] transition text-gray-900 bg-white pr-10"
                   value={password}
-                  onChange={e => setPassword(e.target.value)}
+                  onChange={(e) => setPassword(e.target.value)}
                   required
                 />
                 <button
                   type="button"
                   className="absolute right-3 top-8 text-xs text-[#c83589] hover:underline focus:outline-none"
-                  onClick={() => setShowPassword(v => !v)}
+                  onClick={() => setShowPassword((v) => !v)}
                   tabIndex={-1}
                 >
                   {showPassword ? "Hide" : "Show"}
@@ -243,7 +258,10 @@ export default function AuthModal({
               </div>
               {mode === "register" && (
                 <div className="flex flex-col items-start">
-                  <label htmlFor="confirmPassword" className="mb-1 text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="confirmPassword"
+                    className="mb-1 text-sm font-medium text-gray-700"
+                  >
                     Confirm Password
                   </label>
                   <input
@@ -252,7 +270,7 @@ export default function AuthModal({
                     placeholder="Confirm Password"
                     className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:border-[#c83589] transition text-gray-900 bg-white"
                     value={confirmPassword}
-                    onChange={e => setConfirmPassword(e.target.value)}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
                     required
                   />
                 </div>

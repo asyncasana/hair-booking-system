@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useSession, signIn } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import BookingCalendar from "@/app/_components/BookingCalendar";
 import ContactForm from "./ContactForm";
+import AuthModal from "@/app/_components/AuthModal";
 import "react-calendar/dist/Calendar.css";
 import { parseTimeString } from "@/lib/utils/time";
 import { date } from "drizzle-orm/pg-core";
@@ -15,6 +15,7 @@ export default function BookingForm() {
   const searchParams = useSearchParams();
   const { data: session } = useSession();
   const [services, setServices] = useState<any[]>([]);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Fetch services from your API route
   useEffect(() => {
@@ -45,6 +46,7 @@ export default function BookingForm() {
 
   // Handler for booking submission
   const handleConfirmBooking = async () => {
+    setLoading(true); // Start loading
     let startTime: Date | null = null;
     if (selectedDate && selectedTime) {
       // Try 12-hour format first
@@ -52,7 +54,6 @@ export default function BookingForm() {
       if (timeParts.length === 2) {
         const [time, modifier] = timeParts;
         if (time) {
-          // <-- Add this check
           const [hoursStr, minutesStr] = time.split(":");
           let hours = Number(hoursStr);
           let minutes = Number(minutesStr);
@@ -80,6 +81,7 @@ export default function BookingForm() {
     // Validate startTime
     if (!startTime || isNaN(startTime.getTime())) {
       setShowError(true);
+      setLoading(false);
       alert("Invalid date or time selected.");
       return;
     }
@@ -101,32 +103,68 @@ export default function BookingForm() {
     } catch (error) {
       setShowError(true);
     }
-    console.log("selectedDate:", selectedDate);
-    console.log("selectedTime:", selectedTime);
-    console.log("startTime:", startTime);
+    setLoading(false); // Stop loading
+    // ...existing code...
   };
 
   // If not logged in
   if (!session) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-        <h2 className="text-2xl font-bold mb-4 text-[#c83589]">
-          Book an Appointment
-        </h2>
-        <p className="mb-4">Please log in to book an appointment.</p>
-        <button
-          className="bg-[#c83589] text-white rounded px-4 py-2 font-semibold hover:bg-[#ff77a4]"
-          onClick={() => signIn("google")}
-        >
-          Sign in with Google
-        </button>
-      </div>
+      <>
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+          <h2 className="text-2xl font-bold mb-4 text-[#c83589]">
+            Book an Appointment
+          </h2>
+          <p className="mb-4">Please log in to book an appointment.</p>
+          <button
+            className="bg-[#c83589] text-white rounded px-4 py-2 font-semibold hover:bg-[#ff77a4]"
+            onClick={() => setShowAuthModal(true)}
+          >
+            Login / Register
+          </button>
+        </div>
+        {showAuthModal && (
+          <AuthModal
+            open={showAuthModal}
+            onClose={() => setShowAuthModal(false)}
+          />
+        )}
+      </>
     );
   }
 
-  // Show selected service if preselected, otherwise show dropdown
   return (
     <>
+      {/* Loading overlay */}
+      {loading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
+          <div className="bg-white rounded-lg p-6 shadow-lg flex flex-col items-center">
+            <svg
+              className="animate-spin h-8 w-8 text-[#c83589] mb-2"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+                fill="none"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v8z"
+              />
+            </svg>
+            <span className="text-[#c83589] font-semibold">
+              Processing your booking...
+            </span>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-lg mx-auto pt-12 px-4">
         <h1 className="text-3xl font-bold mb-6 text-[#c83589] text-center">
           Book an Appointment
@@ -223,12 +261,37 @@ export default function BookingForm() {
         {/* Confirm button */}
         {selectedService && selectedDate && (
           <button
-            className="mb-6 w-full bg-[#c83589] text-white rounded py-2 font-semibold hover:bg-[#ff77a4] transition disabled:bg-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed"
+            className="mb-6 w-full bg-[#c83589] text-white rounded py-2 font-semibold hover:bg-[#ff77a4] transition disabled:bg-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center"
             disabled={loading || !selectedTime}
             onClick={handleConfirmBooking}
             type="button"
           >
-            {loading ? "Booking..." : "Confirm Booking"}
+            {loading ? (
+              <>
+                <svg
+                  className="animate-spin h-5 w-5 mr-2 text-white"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8z"
+                  />
+                </svg>
+                Booking...
+              </>
+            ) : (
+              "Confirm Booking"
+            )}
           </button>
         )}
 
