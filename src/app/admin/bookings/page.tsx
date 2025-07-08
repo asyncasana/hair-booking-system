@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState } from "react";
 
 type Booking = {
@@ -18,6 +19,7 @@ export default function AdminBookingsPage() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
   useEffect(() => {
     setLoading(true);
     fetch("/api/admin/bookings")
@@ -68,97 +70,129 @@ export default function AdminBookingsPage() {
             </tr>
           </thead>
           <tbody>
-            {(bookings ?? []).map((b) => (
-              <tr key={b.id}>
-                <td style={{ padding: 10, borderBottom: "1px solid #f0f0f0" }}>
-                  {b.customerName}
-                </td>
-                <td style={{ padding: 10, borderBottom: "1px solid #f0f0f0" }}>
-                  {b.service?.name}
-                </td>
-                <td style={{ padding: 10, borderBottom: "1px solid #f0f0f0" }}>
-                  {new Date(b.startTime).toLocaleString("en-GB", {
-                    timeZone: "Europe/London",
-                  })}
-                </td>
-                <td style={{ padding: 10, borderBottom: "1px solid #f0f0f0" }}>
-                  <span
+            {(bookings ?? []).map((b) => {
+              const isPast = new Date(b.startTime) <= new Date();
+
+              return (
+                <tr key={b.id}>
+                  <td
                     style={{
-                      padding: "0.25em 0.75em",
-                      borderRadius: 12,
-                      background:
-                        b.status === "pending"
-                          ? "#ffe58f"
-                          : b.status === "confirmed"
-                          ? "#b7eb8f"
-                          : "#ffa39e",
-                      color:
-                        b.status === "pending"
-                          ? "#ad6800"
-                          : b.status === "confirmed"
-                          ? "#237804"
-                          : "#a8071a",
-                      fontWeight: 500,
+                      padding: 10,
+                      borderBottom: "1px solid #f0f0f0",
                     }}
                   >
-                    {b.status}
-                  </span>
-                </td>
-                <td style={{ padding: 10, borderBottom: "1px solid #f0f0f0" }}>
-                  {b.status === "pending" && (
-                    <button
+                    {b.customerName}
+                  </td>
+                  <td
+                    style={{
+                      padding: 10,
+                      borderBottom: "1px solid #f0f0f0",
+                    }}
+                  >
+                    {b.service?.name}
+                  </td>
+                  <td
+                    style={{
+                      padding: 10,
+                      borderBottom: "1px solid #f0f0f0",
+                    }}
+                  >
+                    {new Date(b.startTime).toLocaleString("en-GB", {
+                      timeZone: "Europe/London",
+                    })}
+                  </td>
+                  <td
+                    style={{
+                      padding: 10,
+                      borderBottom: "1px solid #f0f0f0",
+                    }}
+                  >
+                    <span
                       style={{
-                        marginRight: 8,
-                        padding: "6px 16px",
-                        background: "#52c41a",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: 4,
-                        cursor: "pointer",
+                        padding: "0.25em 0.75em",
+                        borderRadius: 12,
+                        background:
+                          b.status === "pending"
+                            ? "#ffe58f"
+                            : b.status === "confirmed"
+                            ? "#b7eb8f"
+                            : "#ffa39e",
+                        color:
+                          b.status === "pending"
+                            ? "#ad6800"
+                            : b.status === "confirmed"
+                            ? "#237804"
+                            : "#a8071a",
                         fontWeight: 500,
                       }}
-                      onClick={async () => {
-                        await fetch("/api/admin/bookings", {
-                          method: "PATCH",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            id: b.id,
-                            status: "confirmed",
-                          }),
-                        });
-
-                        const res = await fetch("/api/admin/bookings");
-                        const data = await res.json();
-                        setBookings(data.bookings);
-                      }}
                     >
-                      Confirm
-                    </button>
-                  )}
-                  <button
+                      {b.status}
+                    </span>
+                  </td>
+                  <td
                     style={{
-                      padding: "6px 16px",
-                      background: "#ff4d4f",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: 4,
-                      cursor: "pointer",
-                      fontWeight: 500,
-                    }}
-                    onClick={async () => {
-                      await fetch(`/api/bookings/${b.id}`, {
-                        method: "DELETE",
-                      });
-                      const res = await fetch("/api/admin/bookings");
-                      const data = await res.json();
-                      setBookings(data.bookings);
+                      padding: 10,
+                      borderBottom: "1px solid #f0f0f0",
                     }}
                   >
-                    Cancel
-                  </button>
-                </td>
-              </tr>
-            ))}
+                    {!isPast && b.status === "pending" && (
+                      <button
+                        style={{
+                          marginRight: 8,
+                          padding: "6px 16px",
+                          background: "#52c41a",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: 4,
+                          cursor: "pointer",
+                          fontWeight: 500,
+                        }}
+                        onClick={async () => {
+                          await fetch("/api/admin/bookings", {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              id: b.id,
+                              status: "confirmed",
+                            }),
+                          });
+
+                          const res = await fetch("/api/admin/bookings");
+                          const data = await res.json();
+                          setBookings(data.bookings);
+                        }}
+                      >
+                        Confirm
+                      </button>
+                    )}
+
+                    {!isPast && (
+                      <button
+                        style={{
+                          padding: "6px 16px",
+                          background: "#ff4d4f",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: 4,
+                          cursor: "pointer",
+                          fontWeight: 500,
+                        }}
+                        onClick={async () => {
+                          await fetch(`/api/bookings/${b.id}`, {
+                            method: "DELETE",
+                          });
+                          const res = await fetch("/api/admin/bookings");
+                          const data = await res.json();
+                          setBookings(data.bookings);
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       )}
