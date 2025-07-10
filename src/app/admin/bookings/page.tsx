@@ -28,135 +28,172 @@ export default function AdminBookingsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (!mounted) return null; // Prevent hydration mismatch
+  if (!mounted) return null;
+
+  const now = new Date();
+
+  // Filter out old cancelled bookings
+  const filteredBookings = bookings.filter((b) => {
+    if (b.status !== "cancelled") return true;
+    const startDate = new Date(b.startTime);
+    const diffDays =
+      (now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
+    return diffDays <= 14;
+  });
+
+  // Sort newest first
+  const sortedBookings = filteredBookings.sort(
+    (a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
+  );
 
   return (
-    <div style={{ maxWidth: 900, margin: "2rem auto", padding: "1rem" }}>
-      <h1 style={{ fontSize: "2rem", marginBottom: "1rem" }}>All Bookings</h1>
-      {loading ? (
-        <div style={{ textAlign: "center", padding: "2rem" }}>Loading...</div>
-      ) : bookings.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "2rem" }}>
-          No bookings found.
-        </div>
-      ) : (
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            background: "#fff",
-            borderRadius: 8,
-            overflow: "hidden",
-            boxShadow: "0 2px 8px #0001",
-          }}
-        >
-          <thead style={{ background: "#f3f3f3" }}>
-            <tr>
-              <th style={{ padding: 12, borderBottom: "1px solid #eee" }}>
-                Customer
-              </th>
-              <th style={{ padding: 12, borderBottom: "1px solid #eee" }}>
-                Service
-              </th>
-              <th style={{ padding: 12, borderBottom: "1px solid #eee" }}>
-                Date
-              </th>
-              <th style={{ padding: 12, borderBottom: "1px solid #eee" }}>
-                Status
-              </th>
-              <th style={{ padding: 12, borderBottom: "1px solid #eee" }}>
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {(bookings ?? []).map((b) => {
-              const isPast = new Date(b.startTime) <= new Date();
+    <div className="max-w-5xl mx-auto px-4 py-6">
+      <h1 className="text-2xl font-bold mb-4">All Bookings</h1>
 
+      {loading ? (
+        <div className="text-center py-8">Loading...</div>
+      ) : bookings.length === 0 ? (
+        <div className="text-center py-8">No bookings found.</div>
+      ) : (
+        <>
+          {/* Desktop Table */}
+          <div className="hidden md:block">
+            <table className="w-full border-collapse bg-white rounded shadow overflow-hidden">
+              <thead className="bg-gray-100 text-left">
+                <tr>
+                  <th className="p-3 border-b">Customer</th>
+                  <th className="p-3 border-b">Email</th>
+                  <th className="p-3 border-b">Service</th>
+                  <th className="p-3 border-b">Date</th>
+                  <th className="p-3 border-b">Status</th>
+                  <th className="p-3 border-b">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedBookings.map((b) => {
+                  const isPast = new Date(b.startTime) <= new Date();
+                  return (
+                    <tr key={b.id}>
+                      <td className="p-3 border-b">{b.customerName}</td>
+                      <td className="p-3 border-b">{b.customerEmail}</td>
+                      <td className="p-3 border-b">{b.service?.name}</td>
+                      <td className="p-3 border-b">
+                        {new Date(b.startTime).toLocaleString("en-GB", {
+                          timeZone: "Europe/London",
+                        })}
+                      </td>
+                      <td className="p-3 border-b">
+                        <span
+                          className={`px-3 py-1 rounded font-medium ${
+                            b.status === "pending"
+                              ? "bg-yellow-200 text-yellow-800"
+                              : b.status === "confirmed"
+                              ? "bg-green-200 text-green-800"
+                              : "bg-red-200 text-red-800"
+                          }`}
+                        >
+                          {b.status}
+                        </span>
+                      </td>
+                      <td className="p-3 border-b">
+                        {!isPast && b.status === "pending" && (
+                          <button
+                            className="mr-2 px-3 py-1 bg-green-500 text-white rounded font-medium"
+                            onClick={async () => {
+                              await fetch("/api/admin/bookings", {
+                                method: "PATCH",
+                                headers: {
+                                  "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify({
+                                  id: b.id,
+                                  status: "confirmed",
+                                }),
+                              });
+                              const res = await fetch("/api/admin/bookings");
+                              const data = await res.json();
+                              setBookings(data.bookings);
+                            }}
+                          >
+                            Confirm
+                          </button>
+                        )}
+                        {!isPast && (
+                          <button
+                            className="px-3 py-1 bg-red-500 text-white rounded font-medium"
+                            onClick={async () => {
+                              await fetch(`/api/bookings/${b.id}`, {
+                                method: "DELETE",
+                              });
+                              const res = await fetch("/api/admin/bookings");
+                              const data = await res.json();
+                              setBookings(data.bookings);
+                            }}
+                          >
+                            Cancel
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="md:hidden flex flex-col gap-4">
+            {sortedBookings.map((b) => {
+              const isPast = new Date(b.startTime) <= new Date();
               return (
-                <tr key={b.id}>
-                  <td
-                    style={{
-                      padding: 10,
-                      borderBottom: "1px solid #f0f0f0",
-                    }}
-                  >
-                    {b.customerName}
-                  </td>
-                  <td
-                    style={{
-                      padding: 10,
-                      borderBottom: "1px solid #f0f0f0",
-                    }}
-                  >
-                    {b.service?.name}
-                  </td>
-                  <td
-                    style={{
-                      padding: 10,
-                      borderBottom: "1px solid #f0f0f0",
-                    }}
-                  >
+                <div
+                  key={b.id}
+                  className="bg-white rounded shadow p-4 text-sm space-y-2"
+                >
+                  <div>
+                    <strong>Customer:</strong> {b.customerName}
+                  </div>
+                  <div>
+                    <strong>Email:</strong> {b.customerEmail}
+                  </div>
+                  <div>
+                    <strong>Service:</strong> {b.service?.name}
+                  </div>
+                  <div>
+                    <strong>Date:</strong>{" "}
                     {new Date(b.startTime).toLocaleString("en-GB", {
                       timeZone: "Europe/London",
                     })}
-                  </td>
-                  <td
-                    style={{
-                      padding: 10,
-                      borderBottom: "1px solid #f0f0f0",
-                    }}
-                  >
+                  </div>
+                  <div>
+                    <strong>Status:</strong>{" "}
                     <span
-                      style={{
-                        padding: "0.25em 0.75em",
-                        borderRadius: 12,
-                        background:
-                          b.status === "pending"
-                            ? "#ffe58f"
-                            : b.status === "confirmed"
-                            ? "#b7eb8f"
-                            : "#ffa39e",
-                        color:
-                          b.status === "pending"
-                            ? "#ad6800"
-                            : b.status === "confirmed"
-                            ? "#237804"
-                            : "#a8071a",
-                        fontWeight: 500,
-                      }}
+                      className={`px-2 py-1 rounded font-medium ${
+                        b.status === "pending"
+                          ? "bg-yellow-200 text-yellow-800"
+                          : b.status === "confirmed"
+                          ? "bg-green-200 text-green-800"
+                          : "bg-red-200 text-red-800"
+                      }`}
                     >
                       {b.status}
                     </span>
-                  </td>
-                  <td
-                    style={{
-                      padding: 10,
-                      borderBottom: "1px solid #f0f0f0",
-                    }}
-                  >
+                  </div>
+                  <div className="flex gap-2 pt-2">
                     {!isPast && b.status === "pending" && (
                       <button
-                        style={{
-                          marginRight: 8,
-                          padding: "6px 16px",
-                          background: "#52c41a",
-                          color: "#fff",
-                          border: "none",
-                          borderRadius: 4,
-                          cursor: "pointer",
-                          fontWeight: 500,
-                        }}
+                        className="flex-1 px-3 py-1 bg-green-500 text-white rounded font-medium"
                         onClick={async () => {
                           await fetch("/api/admin/bookings", {
                             method: "PATCH",
-                            headers: { "Content-Type": "application/json" },
+                            headers: {
+                              "Content-Type": "application/json",
+                            },
                             body: JSON.stringify({
                               id: b.id,
                               status: "confirmed",
                             }),
                           });
-
                           const res = await fetch("/api/admin/bookings");
                           const data = await res.json();
                           setBookings(data.bookings);
@@ -165,18 +202,9 @@ export default function AdminBookingsPage() {
                         Confirm
                       </button>
                     )}
-
                     {!isPast && (
                       <button
-                        style={{
-                          padding: "6px 16px",
-                          background: "#ff4d4f",
-                          color: "#fff",
-                          border: "none",
-                          borderRadius: 4,
-                          cursor: "pointer",
-                          fontWeight: 500,
-                        }}
+                        className="flex-1 px-3 py-1 bg-red-500 text-white rounded font-medium"
                         onClick={async () => {
                           await fetch(`/api/bookings/${b.id}`, {
                             method: "DELETE",
@@ -189,12 +217,12 @@ export default function AdminBookingsPage() {
                         Cancel
                       </button>
                     )}
-                  </td>
-                </tr>
+                  </div>
+                </div>
               );
             })}
-          </tbody>
-        </table>
+          </div>
+        </>
       )}
     </div>
   );
