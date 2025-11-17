@@ -9,8 +9,9 @@ import { users } from "@/server/db/schema";
 
 import type { Session } from "next-auth";
 import type { JWT } from "next-auth/jwt";
+import type { NextAuthOptions } from "next-auth";
 
-export const authConfig = {
+export const authConfig: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.AUTH_GOOGLE_ID!,
@@ -45,7 +46,7 @@ export const authConfig = {
   ],
   secret: process.env.AUTH_SECRET,
   session: {
-    strategy: "jwt",
+    strategy: "jwt" as const,
     maxAge: 30 * 24 * 60 * 60,
   },
   callbacks: {

@@ -7,7 +7,7 @@ import { eq } from "drizzle-orm";
 
 // This route handles user information to show on the account page.
 export async function GET(req: Request) {
-  const session = await getServerSession(authConfig);
+  const session = await getServerSession(authConfig as any);
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -19,7 +19,7 @@ export async function GET(req: Request) {
 
 // This route handles user account updates, such as name, phone number and image.
 export async function PUT(req: Request) {
-  const session = await getServerSession(authConfig);
+  const session = await getServerSession(authConfig as any);
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
