@@ -7,11 +7,20 @@ import { eq } from "drizzle-orm";
 import { db } from "@/server/db";
 import { users } from "@/server/db/schema";
 
-import type { Session } from "next-auth";
+import type { DefaultSession } from "next-auth";
 import type { JWT } from "next-auth/jwt";
-import type { NextAuthOptions } from "next-auth";
 
-export const authConfig: NextAuthOptions = {
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+      email: string;
+      role: string;
+    } & DefaultSession["user"];
+  }
+}
+
+export const authConfig = {
   providers: [
     GoogleProvider({
       clientId: process.env.AUTH_GOOGLE_ID!,
@@ -58,11 +67,11 @@ export const authConfig: NextAuthOptions = {
       }
       return token;
     },
-    async session({ session, token }: { session: Session; token: JWT }) {
+    async session({ session, token }: any) {
       if (session.user) {
-        (session.user as any).id = token.id;
-        (session.user as any).email = token.email;
-        (session.user as any).role = token.role;
+        session.user.id = token.id;
+        session.user.email = token.email;
+        session.user.role = token.role;
       }
       return session;
     },
