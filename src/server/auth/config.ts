@@ -1,4 +1,3 @@
-import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import GoogleProvider from "next-auth/providers/google";
 import nodemailer from "nodemailer";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -6,15 +5,10 @@ import bcrypt from "bcrypt";
 import { eq } from "drizzle-orm";
 
 import { db } from "@/server/db";
-import {
-  accounts,
-  sessions,
-  users,
-  verificationTokens,
-} from "@/server/db/schema";
+import { users } from "@/server/db/schema";
 
 import type { Session } from "next-auth";
-import type { User } from "next-auth";
+import type { JWT } from "next-auth/jwt";
 
 export const authConfig = {
   providers: [
@@ -50,24 +44,34 @@ export const authConfig = {
     }),
   ],
   secret: process.env.AUTH_SECRET,
-  adapter: DrizzleAdapter(db, {
-    usersTable: users,
-    accountsTable: accounts,
-    sessionsTable: sessions,
-    verificationTokensTable: verificationTokens,
-  }),
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60,
+  },
   callbacks: {
-    session: ({ session, user }: { session: Session; user: User }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: user.id,
-        role: (user as any).role,
-      },
-    }),
+    async jwt({ token, user }: { token: JWT; user?: any }) {
+      if (user) {
+        token.id = user.id;
+        token.email = user.email;
+        token.role = user.role || "user";
+      }
+      return token;
+    },
+    async session({ session, token }: { session: Session; token: JWT }) {
+      if (session.user) {
+        (session.user as any).id = token.id;
+        (session.user as any).email = token.email;
+        (session.user as any).role = token.role;
+      }
+      return session;
+    },
+  },
+  pages: {
+    signIn: "/",
+    error: "/",
   },
   events: {
-    async createUser({ user }: { user: User }) {
+    async createUser({ user }: { user: any }) {
       if (user.email) {
         const transporter = nodemailer.createTransport({
           service: "gmail",
