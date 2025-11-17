@@ -5,6 +5,38 @@ It includes authentication, slot-based bookings, a responsive admin dashboard, a
 
 ---
 
+## 📸 Preview
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/asyncasana/hair-booking-system/main/public/preview.png" width="800" />
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/asyncasana/hair-booking-system/main/public/account.png" width="800" />
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/asyncasana/hair-booking-system/main/public/auth.png" width="800" />
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/asyncasana/hair-booking-system/main/public/dashboard.png" width="800" />
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/asyncasana/hair-booking-system/main/public/booking.png" width="800" />
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/asyncasana/hair-booking-system/main/public/booking1.png" width="800" />
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/asyncasana/hair-booking-system/main/public/booking2.png" width="800" />
+</p>
+
+---
+
 ## Live Demo  
 🔗 https://hair-with-iryna.vercel.app/
 
