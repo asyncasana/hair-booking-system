@@ -16,10 +16,6 @@ It includes authentication, slot-based bookings, a responsive admin dashboard, a
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/asyncasana/hair-booking-system/main/public/account.png" width="800" />
-</p>
-
-<p align="center">
   <img src="https://raw.githubusercontent.com/asyncasana/hair-booking-system/main/public/booking.png" width="800" />
 </p>
 
