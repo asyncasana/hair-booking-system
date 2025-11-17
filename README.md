@@ -1,10 +1,12 @@
 # **Hair Booking System**
 
-## Live Demo  
-🔗 https://hair-with-iryna.vercel.app/
-
 A production-ready booking platform built for a local hairstylist.  
 It includes authentication, slot-based bookings, a responsive admin dashboard, automated email flows, and a clean Next.js + Drizzle architecture.
+
+---
+
+## Live Demo  
+🔗 https://hair-with-iryna.vercel.app/
 
 ---
 
