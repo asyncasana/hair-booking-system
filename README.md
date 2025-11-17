@@ -12,15 +12,11 @@ It includes authentication, slot-based bookings, a responsive admin dashboard, a
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/asyncasana/hair-booking-system/main/public/account.png" width="800" />
-</p>
-
-<p align="center">
   <img src="https://raw.githubusercontent.com/asyncasana/hair-booking-system/main/public/auth.png" width="800" />
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/asyncasana/hair-booking-system/main/public/dashboard.png" width="800" />
+  <img src="https://raw.githubusercontent.com/asyncasana/hair-booking-system/main/public/account.png" width="800" />
 </p>
 
 <p align="center">
@@ -33,6 +29,10 @@ It includes authentication, slot-based bookings, a responsive admin dashboard, a
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/asyncasana/hair-booking-system/main/public/booking2.png" width="800" />
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/asyncasana/hair-booking-system/main/public/dashboard.png" width="800" />
 </p>
 
 ---
